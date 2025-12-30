@@ -10,10 +10,13 @@ packages = [{ include = "bullbear_backend" }]
 python = "^3.12"
 fastapi = "^0.115.6"
 uvicorn = { version = "^0.32.1", extras = ["standard"] }
+requests = "^2.32.3"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 ruff = "^0.8.4"
+ipython = "^9.8.0"
 
 [tool.ruff]
 target-version = "py312"
