@@ -1,12 +1,13 @@
-Contributor Onboarding (One-Page)
+# Contributor Onboarding 
 
-一个由社区共建的「加密市场状态机」
-用结构化状态，替代情绪化判断
+一个由社区共建的「加密市场状态机」  
+用结构化状态，替代情绪化判断。
 
-🎯 项目目标
+---
 
-将复杂的市场信号（ETF Flow / AUM / 趋势 / 情绪）
-抽象为一个可解释、可验证、可演进的市场状态机：
+## 🎯 项目目标
+
+将复杂的市场信号（ETF Flow / AUM / 趋势 / 情绪等），抽象为一个**可解释、可验证、可演进**的市场状态机：
 ```markdown
         资金进攻              资金防守
       ┌─────────────┐      ┌─────────────┐
@@ -18,102 +19,93 @@ Contributor Onboarding (One-Page)
       │  ⚡ MEDIUM │      │  🩸 LOW     │
       └─────────────┘      └─────────────┘
 ```
+> 说明：我们不追求“预测价格”，而是建立一套可复盘的市场认知结构。
 
+---
 
-🤝 我们欢迎什么样的贡献者？
+## 🤝 我们欢迎什么样的贡献者？
 
-对 数据 / 市场结构 / 系统抽象 感兴趣
+- 对 **数据 / 市场结构 / 系统抽象** 感兴趣  
+- 不要求长期承诺，**周末参与完全 OK**  
+- 不分职级，重视**判断力**与**思考质量**
 
-不要求长期承诺，周末参与完全 OK
+---
 
-不分职级，重视判断力和思考质量
+## 🧩 你可以从哪里参与？（任选其一）
 
-🧩 你可以从哪里参与？（任选）
-🧠 设计型（非常欢迎 Senior / Staff）
+### 🧠 设计型（非常欢迎 Senior / Staff）
+你来定义“应该怎么做”：
+- 状态定义与边界
+- 状态转移条件
+- 信号优先级 / 冲突处理
+- 失败模式与 edge case
 
-状态定义与边界
+产出：`Discussion / Markdown / Notion`
 
-状态转移条件
+---
 
-信号优先级 / 冲突处理
+### 🧪 实验型
+你来验证“能不能跑得通”：
+- 用历史数据验证某个信号是否有效
+- 回测某条转移逻辑
+- 快速原型（Notebook / Script）
 
-失败模式 & edge case
+产出：`Notebook + 结论总结`
 
-📄 产出：Discussion / Markdown / Notion
+---
 
-🧪 实验型
+### 🧱 实现型
+你来实现“可复用的组件”：
+- 指标计算模块
+- 状态机 engine
+- 可视化 / dashboard
 
-用历史数据验证某个信号
+产出：`PR / 可运行代码`
 
-回测某条转移逻辑
+---
 
-快速原型（Notebook / Script）
+## 🚀 快速开始（30–45 分钟）
 
-📄 产出：Notebook + 结论总结
+1) 加入/关注进度  
+- Discord：`#market-state-machine`  
+- GitHub Repo：read-only 也完全 OK
 
-🧱 实现型
+2) 阅读（当前草案）  
+- `README.md`  
+- `docs/STATE_MODEL.md`  
+- `docs/DATA_SOURCES.md`
 
-指标计算模块
+3) 留下一句话（任选 Discord 或 GitHub Discussion）  
+> “我比较想从 ___ 方向 contribute，可能能帮上 ___。”
 
-状态机 engine
+---
 
-可视化 / dashboard
+## 🛠 协作原则
 
-📄 产出：PR / 可运行代码
+- 设计类变更：**先 Discussion，再 PR**  
+- PR 请说明：
+  - 为什么这样设计
+  - 替代方案是什么  
+- 不追求“绝对正确”，追求：**可解释 & 可复盘**
 
-🚀 快速开始（30–45 分钟）
+---
 
-1️⃣ 加入：
+## 🏅 认可方式
 
-Discord：#market-state-machine
+- README Contributors 列名  
+- Discord Contributor role  
+- 视频鸣谢（可选实名 / 匿名）  
+- Core Contributor 身份（长期共建者）
 
-GitHub Repo（read-only 即可）
+---
 
-2️⃣ 阅读这 3 个文件：
+## 👤 项目发起人角色
 
-README.md
+我不是 PM，也不是老板，而是：
+- 愿景守门人
+- 边界裁判
+- 最终整合者
 
-docs/STATE_MODEL.md
-
-docs/DATA_SOURCES.md
-
-3️⃣ 留下一句话：
-
-“我比较想从 ___ 方向 contribute，可能能帮上 ___。”
-
-🛠 协作原则
-
-设计类变更 → 先 Discussion
-
-PR 请说明：
-
-为什么这样设计
-
-替代方案是什么
-
-不追求“绝对正确”，追求 可解释 & 可复盘
-
-🏅 认可方式
-
-README Contributors 列名
-
-Discord Contributor role
-
-视频鸣谢（可选实名 / 匿名）
-
-Core Contributor 身份
-
-👤 项目发起人角色
-
-不是 PM，也不是老板，而是：
-
-愿景守门人
-
-边界裁判
-
-最终整合者
-
-这个项目不是为了“预测价格”，
-而是为了建立一套能被反复讨论、不断修正的市场认知结构。
+---
 
 欢迎你加入共建 👋
