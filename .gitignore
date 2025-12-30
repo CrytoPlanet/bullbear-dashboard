@@ -201,6 +201,10 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# BullBear local caches (added later when we wire data fetching)
+backend/data/
+data/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
