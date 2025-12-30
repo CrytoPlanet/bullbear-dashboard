@@ -1,0 +1,9 @@
+services:
+  bullbear-backend:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+
