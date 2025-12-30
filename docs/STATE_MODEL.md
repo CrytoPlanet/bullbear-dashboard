@@ -19,6 +19,7 @@
 - **资金行为**（进攻 / 防守）
 
 由此形成一个四象限状态模型：
+## 四象限状态（核心输出）
 
 > 用户打开四象限图的那一刻，应该能立刻看到现在 BTC 处于哪一格。
 
@@ -50,6 +51,8 @@ flowchart TB
   linkStyle 1 stroke:transparent;
   linkStyle 2 stroke:transparent;
   linkStyle 3 stroke:transparent;
+
+
 ---
 
 ## 二、状态的基本直觉（非严格定义）
