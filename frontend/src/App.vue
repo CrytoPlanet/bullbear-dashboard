@@ -6,7 +6,7 @@ const data = ref<Record<string, DataResult>>({});
 const loading = ref(true);
 const error = ref<string | null>(null);
 
-const CMC_TYPES = ['btc_price', 'total_market_cap', 'stablecoin_market_cap'];
+const DATA_TYPES = ['btc_price', 'total_market_cap', 'stablecoin_market_cap', 'ma50', 'ma200'];
 
 const fetchData = async () => {
   loading.value = true;
@@ -14,7 +14,7 @@ const fetchData = async () => {
   data.value = {};
   
   try {
-    const promises = CMC_TYPES.map(async (type) => {
+    const promises = DATA_TYPES.map(async (type) => {
       const response = await fetch(`http://localhost:8000/api/data/${type}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch ${type}: ${response.status}`);
