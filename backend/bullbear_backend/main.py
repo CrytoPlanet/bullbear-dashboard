@@ -8,11 +8,23 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
 from bullbear_backend.data import DataFetcher, DataType
+from bullbear_backend.state_machine import StateMachineEngine
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = FastAPI(title="BullBear Backend", version="0.1.0")
+
+# Enable CORS for frontend
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify actual frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/api/health")
@@ -68,3 +80,18 @@ def get_all_data() -> dict[str, object]:
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch data: {e}")
+
+
+@app.get("/api/state")
+def get_market_state() -> dict[str, object]:
+    """Get current market state from state machine.
+
+    Returns:
+        StateResult as JSON with market state, trend, funding, and risk level
+    """
+    try:
+        engine = StateMachineEngine()
+        result = engine.evaluate()
+        return {"ok": True, **result.to_dict()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to evaluate state: {e}")
