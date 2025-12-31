@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from bullbear_backend.data.providers.taapi import TaapiProvider
+from bullbear_backend.data.providers import get_provider
 from bullbear_backend.data.sources.base import BaseSource
 from bullbear_backend.data.types import DataResult, DataType
 
@@ -23,7 +23,7 @@ class MaSource(BaseSource):
             raise ValueError(f"Unsupported MA period: {period}. Use 50 or 200.")
 
         self._period = period
-        self._provider = TaapiProvider()
+        self._provider = get_provider("taapi")
 
     def fetch(self) -> DataResult:
         """Fetch moving average value."""
@@ -40,9 +40,9 @@ class MaSource(BaseSource):
             provider=self._provider.name,
             metadata={
                 "period": self._period,
-                "exchange": TaapiProvider.DEFAULT_EXCHANGE,
-                "symbol": TaapiProvider.DEFAULT_SYMBOL,
-                "interval": TaapiProvider.DEFAULT_INTERVAL,
+                "exchange": getattr(self._provider, "DEFAULT_EXCHANGE", "binance"),
+                "symbol": getattr(self._provider, "DEFAULT_SYMBOL", "BTC/USDT"),
+                "interval": getattr(self._provider, "DEFAULT_INTERVAL", "1d"),
             },
         )
 
