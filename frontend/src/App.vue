@@ -8,36 +8,32 @@ const data = ref<Record<string, DataResult>>({});
 const stateData = ref<StateApiResponse | null>(null);
 const loading = ref(true);
 const stateLoading = ref(false);
+const initialLoad = ref(true);
 const error = ref<string | null>(null);
 
 const DATA_TYPES = ['btc_price', 'total_market_cap', 'stablecoin_market_cap', 'ma50', 'ma200', 'etf_net_flow', 'etf_aum'];
 
 const fetchData = async () => {
-  loading.value = true;
   error.value = null;
-  data.value = {};
   
   try {
+    // 逐步获取数据，让数据可以逐步显示
     const promises = DATA_TYPES.map(async (type) => {
       const response = await fetch(`${API_BASE_URL}/api/data/${type}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch ${type}: ${response.status}`);
       }
       const json = await response.json();
+      // 立即更新数据，让用户看到数据逐步加载
+      data.value[type] = json as DataResult;
       return { type, result: json as DataResult }; 
     });
 
-    const results = await Promise.all(promises);
-    
-    results.forEach(({ type, result }) => {
-      data.value[type] = result;
-    });
+    await Promise.all(promises);
     
   } catch (e: any) {
     error.value = e.message || 'Failed to fetch data';
     console.error(e);
-  } finally {
-    loading.value = false;
   }
 };
 
@@ -358,9 +354,22 @@ const getETFAcceleratorColor = (accelerator: string) => {
 
 const loadAllData = async () => {
   loading.value = true;
+  initialLoad.value = true;
   error.value = null;
+  data.value = {};
+  stateData.value = null;
+  
+  // 并行执行，不互相等待，让数据可以逐步显示
+  const statePromise = fetchState().then(() => {
+    // 状态数据加载完成后立即隐藏初始加载动画，让内容可以显示
+    initialLoad.value = false;
+  });
+  
+  const dataPromise = fetchData();
+  
+  // 等待两个请求都完成
   try {
-    await Promise.all([fetchData(), fetchState()]);
+    await Promise.all([statePromise, dataPromise]);
   } finally {
     loading.value = false;
   }
@@ -386,8 +395,8 @@ onMounted(() => {
         {{ error }}
       </div>
 
-      <!-- 加载动画 -->
-      <div v-if="loading && !stateData" class="loading-container">
+      <!-- 初始加载动画 -->
+      <div v-if="initialLoad && !stateData" class="loading-container">
         <div class="loading-spinner">
           <div class="spinner-ring"></div>
           <div class="spinner-ring"></div>
@@ -401,9 +410,9 @@ onMounted(() => {
       </div>
 
       <!-- 状态机展示 -->
-      <div v-else-if="stateData && stateData.ok" class="state-section">
+      <div class="state-section">
         <!-- 当前状态概览 -->
-        <div class="state-header">
+        <div v-if="stateData && stateData.ok" class="state-header fade-in">
           <div class="state-box" :style="{ background: STATE_STYLES[stateData.state]?.bgColor || '#1e293b' }">
             <div class="state-name">{{ stateData.state }}</div>
             <div class="state-details">
@@ -432,7 +441,7 @@ onMounted(() => {
         </div>
 
         <!-- 一、核心输出：四象限状态矩阵 -->
-        <div class="quadrant-section">
+        <div v-if="stateData && stateData.ok" class="quadrant-section fade-in">
           <div class="section-header">
             <span class="section-badge core-output">核心输出</span>
             <h2>📈 四象限状态矩阵</h2>
@@ -572,7 +581,7 @@ onMounted(() => {
         <!-- 二、判断规则与数学公式 -->
         
         <!-- 硬规则1：趋势结构 -->
-        <div class="trend-analysis-section">
+        <div v-if="stateData && stateData.ok && stateData.metadata" class="trend-analysis-section fade-in">
           <div class="section-header">
             <span class="section-badge hard-rule">硬规则1</span>
             <h2>📈 趋势结构 (Trend Structure)</h2>
@@ -628,6 +637,30 @@ onMounted(() => {
             <div class="trend-card">
               <div class="trend-card-header">
                 <span class="trend-icon">📈</span>
+                <h3>MA50 趋势</h3>
+              </div>
+              <div v-if="stateData.metadata?.ma50_slope !== undefined" class="trend-content">
+                <div class="trend-status" :class="stateData.metadata.ma50_slope >= 0 ? 'positive' : 'negative'">
+                  <span class="trend-indicator">{{ getSlopeEmoji(stateData.metadata.ma50_slope) }}</span>
+                  <span class="trend-text">
+                    {{ stateData.metadata.ma50_slope >= 0 ? 'MA50 走平或向上' : 'MA50 趋势向下' }}
+                  </span>
+                </div>
+                <div class="trend-detail">
+                  斜率: {{ stateData.metadata.ma50_slope > 0 ? '+' : '' }}{{ stateData.metadata.ma50_slope.toFixed(2) }}%/天
+                </div>
+                <div class="trend-description">
+                  中期节奏线的趋势方向，反映市场中期推动力
+                </div>
+              </div>
+              <div v-else class="trend-content">
+                <div class="trend-unavailable">数据暂未可用</div>
+              </div>
+            </div>
+            
+            <div class="trend-card">
+              <div class="trend-card-header">
+                <span class="trend-icon">📈</span>
                 <h3>MA200 趋势</h3>
               </div>
               <div v-if="stateData.metadata?.ma200_slope !== undefined" class="trend-content">
@@ -667,7 +700,7 @@ onMounted(() => {
         </div>
 
         <!-- 硬规则2：资金姿态 -->
-        <div class="funding-analysis-section">
+        <div v-if="stateData && stateData.ok && stateData.metadata" class="funding-analysis-section fade-in">
           <div class="section-header">
             <span class="section-badge hard-rule">硬规则2</span>
             <h2>💰 资金姿态 (Capital Posture)</h2>
@@ -707,6 +740,22 @@ onMounted(() => {
                 <div class="change-desc">
                   <strong>{{ stateData.metadata.total_slope > 0 ? '上升（变多）' : '下降（变少）' }}：</strong>
                   {{ stateData.metadata.total_slope > 0 ? '总市值上升，风险资产扩张' : '总市值下降，风险资产收缩' }}
+                </div>
+              </div>
+              <div v-if="stateData.metadata?.stablecoin_ratio !== undefined" class="funding-change-item">
+                <div class="change-label">稳定币占比</div>
+                <div class="change-value">
+                  <span class="change-icon">💵</span>
+                  <span>{{ stateData.metadata.stablecoin_ratio.toFixed(2) }}%</span>
+                </div>
+                <div class="change-desc">
+                  <div v-if="stateData.metadata?.stablecoin_ratio_change !== undefined" style="margin-bottom: 0.5rem;">
+                    <span class="ratio-change-indicator">{{ stateData.metadata.stablecoin_ratio_change < 0 ? '⬇️' : stateData.metadata.stablecoin_ratio_change > 0 ? '⬆️' : '➡️' }}</span>
+                    <span :class="stateData.metadata.stablecoin_ratio_change < 0 ? 'positive' : stateData.metadata.stablecoin_ratio_change > 0 ? 'negative' : ''">
+                      变化: {{ stateData.metadata.stablecoin_ratio_change > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_change.toFixed(2) }}%
+                    </span>
+                  </div>
+                  <strong>说明：</strong>稳定币市值 / 加密总市值。占比增加表示资金避险，占比减少表示资金流入风险资产。
                 </div>
               </div>
             </div>
@@ -749,7 +798,7 @@ onMounted(() => {
         </div>
 
         <!-- 检验层A：风险温度计 -->
-        <div class="validation-section">
+        <div v-if="stateData && stateData.ok && stateData.validation" class="validation-section fade-in">
           <div class="section-header">
             <span class="section-badge validation-layer">检验层A</span>
             <h2>🌡️ 风险温度计 (Validation Layer 1)</h2>
@@ -774,7 +823,7 @@ onMounted(() => {
         </div>
 
         <!-- 检验层B：ETF加速器 -->
-        <div class="validation-section">
+        <div v-if="stateData && stateData.ok && stateData.validation" class="validation-section fade-in">
           <div class="section-header">
             <span class="section-badge validation-layer">检验层B</span>
             <h2>🚀 ETF 加速器 (Validation Layer 2)</h2>
@@ -828,7 +877,7 @@ onMounted(() => {
         </div>
 
         <!-- 三、核心切换逻辑 -->
-        <div class="bull-signals-section">
+        <div v-if="stateData && stateData.ok" class="bull-signals-section fade-in">
           <div class="section-header">
             <span class="section-badge core-logic">核心切换逻辑</span>
             <h2>🔄 状态切换信号</h2>
@@ -882,129 +931,35 @@ onMounted(() => {
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 详细数据 -->
-        <div class="details-section">
-          <h2>📊 详细数据</h2>
-          <div v-if="stateLoading" class="data-loading-overlay">
-            <div class="data-loading-spinner">
-              <div class="spinner-ring"></div>
-              <div class="spinner-ring"></div>
-              <div class="spinner-ring"></div>
-              <div class="spinner-ring"></div>
-            </div>
-            <p class="data-loading-text">正在加载状态数据...</p>
+      <!-- 原始数据 -->
+      <div class="details-section" :class="{ 'fade-in': !initialLoad }">
+        <h2>📊 原始数据</h2>
+        <div v-if="loading && Object.keys(data).length === 0" class="data-loading-overlay">
+          <div class="data-loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
           </div>
-          <div class="details-grid">
-            <!-- 从stateData.metadata提取的数据 -->
-            <div class="detail-card">
-              <div class="detail-label">
-                <span class="detail-icon">₿</span>
-                BTC价格
-              </div>
-              <div class="detail-value">${{ stateData.metadata?.btc_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0' }}</div>
-              <div v-if="data.btc_price" class="detail-provider">来源: {{ data.btc_price.provider }}</div>
-              <div class="detail-description">当前比特币市场价格</div>
+          <p class="data-loading-text">正在加载原始数据...</p>
+        </div>
+        <div class="details-grid" v-if="Object.keys(data).length > 0">    
+          <!-- 原始数据源信息-->
+          <div v-for="(item, key) in data" :key="key" class="detail-card" v-if="!['btc_price', 'ma50', 'ma200', 'etf_net_flow', 'etf_aum'].includes(key)">
+            <div class="detail-label">
+              <span class="detail-icon">{{ getDataIcon(key as string) }}</span>
+              {{ DATA_LABELS[key] || key }}
             </div>
-            <div class="detail-card">
-              <div class="detail-label">
-                <span class="detail-icon">📈</span>
-                MA50 (中期节奏线)
-              </div>
-              <div class="detail-value">${{ stateData.metadata?.ma50?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0' }}</div>
-              <div v-if="stateData.metadata?.ma50_slope !== undefined" class="detail-slope">
-                <span class="slope-indicator">{{ getSlopeEmoji(stateData.metadata.ma50_slope) }}</span>
-                <span>斜率: {{ stateData.metadata.ma50_slope > 0 ? '+' : '' }}{{ stateData.metadata.ma50_slope.toFixed(2) }}%/天</span>
-              </div>
-              <div v-if="data.ma50" class="detail-provider">来源: {{ data.ma50.provider }}</div>
-              <div class="detail-description">50日移动平均线，反映中期趋势</div>
+            <div class="detail-value" :class="key === 'etf_net_flow' && item.value > 0 ? 'positive' : key === 'etf_net_flow' && item.value < 0 ? 'negative' : ''">
+              {{ formatValue(item.value, key as string) }}
             </div>
-            <div class="detail-card">
-              <div class="detail-label">
-                <span class="detail-icon">📊</span>
-                MA200 (长期生命线)
-              </div>
-              <div class="detail-value">${{ stateData.metadata?.ma200?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0' }}</div>
-              <div v-if="stateData.metadata?.ma200_slope !== undefined" class="detail-slope">
-                <span class="slope-indicator">{{ getSlopeEmoji(stateData.metadata.ma200_slope) }}</span>
-                <span>斜率: {{ stateData.metadata.ma200_slope > 0 ? '+' : '' }}{{ stateData.metadata.ma200_slope.toFixed(2) }}%/天</span>
-                <span v-if="stateData.metadata.ma200_slope === 0" class="slope-warning" title="斜率为0可能是因为历史数据不足（需要至少10天的MA200历史值）">⚠️</span>
-              </div>
-              <div v-if="data.ma200" class="detail-provider">来源: {{ data.ma200.provider }}</div>
-              <div class="detail-description">
-                200日移动平均线，反映长期趋势。斜率数据来源：Binance历史K线数据。
-                <span v-if="stateData.metadata?.ma200_slope === 0" class="detail-warning-text">
-                  <br>注意：斜率为0可能是因为从Binance获取的历史K线数据不足（需要至少10天的MA200历史值），或API调用失败。
-                </span>
-              </div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">
-                <span class="detail-icon">💵</span>
-                稳定币占比
-              </div>
-              <div class="detail-value">{{ stateData.metadata?.stablecoin_ratio?.toFixed(2) || '0' }}%</div>
-              <div v-if="stateData.metadata?.stablecoin_ratio_change !== undefined" class="detail-slope">
-                <span class="slope-indicator">{{ stateData.metadata.stablecoin_ratio_change < 0 ? '⬇️' : stateData.metadata.stablecoin_ratio_change > 0 ? '⬆️' : '➡️' }}</span>
-                <span :class="stateData.metadata.stablecoin_ratio_change < 0 ? 'positive' : stateData.metadata.stablecoin_ratio_change > 0 ? 'negative' : ''">
-                  变化: {{ stateData.metadata.stablecoin_ratio_change > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_change.toFixed(2) }}%
-                </span>
-              </div>
-              <div v-if="data.stablecoin_market_cap && data.total_market_cap" class="detail-provider">
-                来源: {{ data.stablecoin_market_cap.provider }} / {{ data.total_market_cap.provider }}
-              </div>
-              <div class="detail-description">
-                稳定币市值 / 加密总市值
-                <br>
-                <span style="font-size: 0.7rem; color: #64748b; margin-top: 0.25rem; display: block;">
-                  占比变化 = 当前占比 - 历史首个数据点占比。正值表示占比增加（资金避险），负值表示占比减少（资金流入风险资产）
-                </span>
-              </div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">
-                <span class="detail-icon">🌡️</span>
-                ATH回撤
-              </div>
-              <div class="detail-value">{{ stateData.metadata?.ath_drawdown?.toFixed(2) || '0' }}%</div>
-              <div class="detail-description">距离历史最高价的回撤幅度</div>
-            </div>
-            <div class="detail-card" v-if="data.etf_net_flow">
-              <div class="detail-label">
-                <span class="detail-icon">📊</span>
-                ETF净资金流
-              </div>
-              <div class="detail-value" :class="data.etf_net_flow.value > 0 ? 'positive' : data.etf_net_flow.value < 0 ? 'negative' : ''">
-                {{ data.etf_net_flow.value > 0 ? '+' : '' }}${{ Math.abs(data.etf_net_flow.value).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
-              </div>
-              <div class="detail-provider">来源: {{ data.etf_net_flow.provider }}</div>
-              <div class="detail-description">{{ data.etf_net_flow.metadata?.description || '现货 ETF 的净资金流入（正数）或流出（负数）' }}</div>
-            </div>
-            <div class="detail-card" v-if="data.etf_aum">
-              <div class="detail-label">
-                <span class="detail-icon">💰</span>
-                ETF资产管理规模 (AUM)
-              </div>
-              <div class="detail-value">${{ data.etf_aum.value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}</div>
-              <div class="detail-provider">来源: {{ data.etf_aum.provider }}</div>
-              <div class="detail-description">{{ data.etf_aum.metadata?.description || 'ETF 的总资产管理规模' }}</div>
-            </div>
-            
-            <!-- 原始数据源信息（仅显示未在详细数据中直接显示的项目） -->
-            <div v-for="(item, key) in data" :key="key" class="detail-card" v-if="!['btc_price', 'ma50', 'ma200', 'etf_net_flow', 'etf_aum'].includes(key)">
-              <div class="detail-label">
-                <span class="detail-icon">{{ getDataIcon(key as string) }}</span>
-                {{ DATA_LABELS[key] || key }}
-              </div>
-              <div class="detail-value" :class="key === 'etf_net_flow' && item.value > 0 ? 'positive' : key === 'etf_net_flow' && item.value < 0 ? 'negative' : ''">
-                {{ formatValue(item.value, key as string) }}
-              </div>
-              <div class="detail-provider">来源: {{ item.provider }}</div>
-              <div class="detail-description">
-                <span v-if="item.metadata?.currency" class="detail-meta-item">{{ item.metadata.currency }}</span>
-                <span v-if="item.metadata?.period" class="detail-meta-item">周期: {{ item.metadata.period }}</span>
-                <span v-if="item.metadata?.description" class="detail-meta-item">{{ item.metadata.description }}</span>
-              </div>
+            <div class="detail-provider">来源: {{ item.provider }}</div>
+            <div class="detail-description">
+              <span v-if="item.metadata?.currency" class="detail-meta-item">{{ item.metadata.currency }}</span>
+              <span v-if="item.metadata?.period" class="detail-meta-item">周期: {{ item.metadata.period }}</span>
+              <span v-if="item.metadata?.description" class="detail-meta-item">{{ item.metadata.description }}</span>
             </div>
           </div>
         </div>
@@ -1411,7 +1366,7 @@ h1 {
 
 .axis-x-label {
   position: absolute;
-  bottom: -2.5rem;
+  bottom: 0.1rem;
   font-size: 1.125rem;
   font-weight: 700;
   color: #f1f5f9;
@@ -1995,6 +1950,65 @@ h1 {
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
+/* 稳定币占比卡片 */
+.funding-ratio-card {
+  background-color: #1e293b;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #334155;
+  margin-bottom: 1.5rem;
+}
+
+.funding-ratio-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.funding-ratio-header h3 {
+  font-size: 1.125rem;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.funding-ratio-content {
+  padding-left: 2.25rem;
+}
+
+.funding-ratio-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 0.75rem;
+}
+
+.funding-ratio-change {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.ratio-change-indicator {
+  font-size: 1rem;
+}
+
+.funding-ratio-change .positive {
+  color: #10b981;
+}
+
+.funding-ratio-change .negative {
+  color: #ef4444;
+}
+
+.funding-ratio-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
 /* 转牛信号 */
 .bull-signals-section {
   margin-bottom: 3rem;
@@ -2452,12 +2466,18 @@ h1 {
 
 /* 加载动画容器 */
 .loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
-  padding: 4rem 2rem;
+  background-color: rgba(15, 23, 42, 0.95);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 /* 加载动画 */
@@ -2543,6 +2563,48 @@ h1 {
   50% {
     opacity: 0.6;
   }
+}
+
+/* 淡入动画 */
+.fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 为不同部分添加不同的延迟，实现逐步显示效果 */
+.state-header.fade-in {
+  animation-delay: 0s;
+}
+
+.quadrant-section.fade-in {
+  animation-delay: 0.05s;
+}
+
+.trend-analysis-section.fade-in {
+  animation-delay: 0.1s;
+}
+
+.funding-analysis-section.fade-in {
+  animation-delay: 0.15s;
+}
+
+.validation-section.fade-in {
+  animation-delay: 0.2s;
+}
+
+.bull-signals-section.fade-in {
+  animation-delay: 0.25s;
 }
 
 /* 原始数据加载覆盖层 */
