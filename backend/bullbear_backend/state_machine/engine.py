@@ -175,7 +175,9 @@ class StateMachineEngine:
         try:
             # Try to get historical klines (works for both BinanceProvider and other providers)
             if hasattr(self._provider, "get_klines"):
-                klines = self._provider.get_klines(limit=200)
+                # Fetch 220 klines to ensure we have at least 10 MA200 values for slope calculation
+                # (MA200 needs 200 days for first value, then 10 more for slope = 210 minimum)
+                klines = self._provider.get_klines(limit=220)
                 # Extract closing prices (index 4)
                 closing_prices = [float(candle[4]) for candle in klines]
                 
