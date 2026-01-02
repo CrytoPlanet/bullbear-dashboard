@@ -8,10 +8,10 @@ from bullbear_backend.data.types import DataResult, DataType
 
 
 class TotalMarketCapSource(BaseSource):
-    """Source for fetching total crypto market cap from CoinMarketCap."""
+    """Source for fetching total crypto market cap from CoinGecko (free API, no key required)."""
 
     def __init__(self) -> None:
-        self._provider = get_provider("coinmarketcap")
+        self._provider = get_provider("coingecko")
 
     def fetch(self) -> DataResult:
         """Fetch total crypto market cap in USD."""

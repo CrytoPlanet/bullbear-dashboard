@@ -70,7 +70,7 @@ flowchart TB
 - Python 3.10+
 - pip 或 poetry
 
-### 使用模拟数据快速体验
+### 快速开始
 
 1. **配置后端环境**
 
@@ -79,10 +79,7 @@ cd backend
 cp env.example .env
 ```
 
-编辑 `.env` 文件，设置：
-```
-USE_MOCK_DATA=true
-```
+编辑 `.env` 文件，添加API密钥（见下方说明）
 
 2. **安装后端依赖**
 
@@ -99,20 +96,15 @@ python -m uvicorn bullbear_backend.main:app --reload --host 0.0.0.0 --port 8000
 
 后端将在 **http://localhost:8000** 运行
 
-4. **安装前端依赖**
+4. **启动前端应用**
 
 ```bash
-cd dashboard
-pip install -r requirements.txt
+cd frontend
+pnpm install
+pnpm dev
 ```
 
-5. **启动前端Dashboard**
-
-```bash
-streamlit run app.py
-```
-
-前端将在 **http://localhost:8501** 运行
+前端将在 **http://localhost:5173** 运行
 
 ### 测试API
 
@@ -148,8 +140,8 @@ bullbear-dashboard/
 │   │   ├── data/         # 数据获取层
 │   │   └── state_machine/ # 状态机引擎
 │   └── main.py           # FastAPI 应用入口
-├── dashboard/            # Streamlit 前端
-│   └── app.py           # Dashboard 主应用
+├── frontend/             # Vue.js 前端
+│   └── src/              # 前端源代码
 └── docs/                # 项目文档
 ```
 
@@ -157,18 +149,19 @@ bullbear-dashboard/
 
 ## 🔧 开发说明
 
-### 使用真实API数据
+### 配置API密钥
 
 1. 获取API密钥：
-   - [CoinMarketCap API](https://coinmarketcap.com/api/)
-   - [TAAPI.io](https://taapi.io/)
+   - [CoinMarketCap API](https://coinmarketcap.com/api/) - 用于获取BTC价格和市场数据
+   - [TAAPI.io](https://taapi.io/) - 用于获取技术指标（可选，如果使用Binance则不需要）
 
 2. 编辑 `backend/.env`:
 ```
-USE_MOCK_DATA=false
 CMC_API_KEY=your_coinmarketcap_api_key
 TAAPI_SECRET=your_taapi_secret
 ```
+
+**注意**：Binance API是免费的，无需API密钥即可使用。如果使用Binance作为数据源，只需要配置CoinMarketCap API密钥即可。
 
 ### 状态机逻辑（当前简化版）
 
@@ -186,7 +179,6 @@ TAAPI_SECRET=your_taapi_secret
 - [数据来源说明](docs/DATA_SOURCES.md)
 - [贡献指南](docs/CONTRIBUTING.md)
 - [后端README](backend/README.md)
-- [前端README](dashboard/README.md)
 
 ---
 

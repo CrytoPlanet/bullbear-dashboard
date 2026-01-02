@@ -23,13 +23,14 @@ cp env.example .env
 
 ### 1.3 编辑 `.env` 文件
 
-使用文本编辑器打开 `.env` 文件，设置：
+使用文本编辑器打开 `.env` 文件，添加API密钥：
 
 ```
-USE_MOCK_DATA=true
+CMC_API_KEY=your_coinmarketcap_api_key
+TAAPI_SECRET=your_taapi_secret
 ```
 
-这将使用模拟数据，无需API密钥即可运行。
+**注意**：Binance API是免费的，无需API密钥。如果使用Binance作为数据源，只需要配置CoinMarketCap API密钥即可。
 
 ### 1.4 安装后端依赖
 
@@ -85,57 +86,65 @@ curl http://localhost:8000/api/data
 ### 4.1 进入前端目录
 
 ```bash
-cd dashboard
+cd frontend
 ```
 
 ### 4.2 安装前端依赖
 
 ```bash
-pip install -r requirements.txt
+pnpm install
 ```
 
-## 步骤 5: 启动前端Dashboard
+如果没有安装 pnpm，可以使用 npm 安装：
+```bash
+npm install -g pnpm
+```
+
+## 步骤 5: 启动前端应用
 
 ```bash
-streamlit run app.py
+pnpm dev
 ```
 
 您应该看到类似以下的输出：
 
 ```
-You can now view your Streamlit app in your browser.
+VITE v5.x.x  ready in xxx ms
 
-Local URL: http://localhost:8501
-Network URL: http://192.168.x.x:8501
+➜  Local:   http://localhost:5173/
+➜  Network: use --host to expose
 ```
 
-浏览器会自动打开 Dashboard，如果没有，请手动访问 **http://localhost:8501**
+浏览器会自动打开前端应用，如果没有，请手动访问 **http://localhost:5173**
 
-## 步骤 6: 使用Dashboard
+## 步骤 6: 使用前端应用
 
-1. **查看当前市场状态**: Dashboard 顶部会显示当前的四象限状态
+1. **查看当前市场状态**: 页面顶部会显示当前的四象限状态
 2. **查看四象限图**: 可视化显示当前状态在四象限中的位置
 3. **查看详细数据**: 显示BTC价格、MA50/MA200、稳定币占比等关键指标
-4. **刷新数据**: 点击"刷新数据"按钮获取最新状态
+4. **查看校验层**: 显示风险温度计和ETF加速器状态
+5. **自动刷新**: 数据会自动定期刷新
 
 ## 故障排除
 
 ### 后端无法启动
 
 - 检查端口 8000 是否被占用
-- 确认 `.env` 文件存在且 `USE_MOCK_DATA=true`
+- 确认 `.env` 文件存在且已配置API密钥
 - 检查 Python 版本是否为 3.10+
 
 ### 前端无法连接后端
 
 - 确认后端服务正在运行
-- 检查侧边栏中的后端API地址是否正确（默认: http://localhost:8000）
+- 检查前端配置中的后端API地址是否正确（默认: http://localhost:8000）
 - 查看浏览器控制台是否有错误信息
+- 确认后端CORS配置允许前端域名访问
 
 ### 数据获取失败
 
-- 如果使用模拟数据，确认 `USE_MOCK_DATA=true` 在 `.env` 文件中
-- 如果使用真实API，确认API密钥已正确配置
+- 确认API密钥已正确配置在 `.env` 文件中
+- 检查网络连接是否正常
+- 确认API密钥是否有效
 
 ## 下一步
 
@@ -143,20 +152,19 @@ Network URL: http://192.168.x.x:8501
 - 查看 [数据来源说明](DATA_SOURCES.md) 了解数据获取方式
 - 查看 [贡献指南](CONTRIBUTING.md) 了解如何参与项目
 
-## 使用真实API数据
-
-如果您想使用真实的API数据而不是模拟数据：
+## 配置API密钥
 
 1. 获取API密钥：
-   - [CoinMarketCap API](https://coinmarketcap.com/api/)
-   - [TAAPI.io](https://taapi.io/)
+   - [CoinMarketCap API](https://coinmarketcap.com/api/) - 用于获取BTC价格和市场数据
+   - [TAAPI.io](https://taapi.io/) - 用于获取技术指标（可选，如果使用Binance则不需要）
 
 2. 编辑 `backend/.env`:
 ```
-USE_MOCK_DATA=false
 CMC_API_KEY=your_coinmarketcap_api_key
 TAAPI_SECRET=your_taapi_secret
 ```
 
 3. 重启后端服务
+
+**注意**：Binance API是免费的，无需API密钥。如果使用Binance作为数据源，只需要配置CoinMarketCap API密钥即可。
 

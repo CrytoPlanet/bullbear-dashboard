@@ -15,6 +15,8 @@ class DataType(str, Enum):
     STABLECOIN_MARKET_CAP = "stablecoin_market_cap"
     MA50 = "ma50"
     MA200 = "ma200"
+    ETF_NET_FLOW = "etf_net_flow"
+    ETF_AUM = "etf_aum"
 
 
 @dataclass

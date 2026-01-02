@@ -31,6 +31,17 @@ class MarketState(str, Enum):
 
 
 @dataclass
+class ValidationLayer:
+    """Validation layer results (risk thermometer and ETF accelerator)."""
+
+    risk_thermometer: str  # "正常体温", "低/中烧", "高烧威胁", "生命体征极差"
+    ath_drawdown: float  # ATH回撤率 (percentage)
+    etf_accelerator: str  # "顺风", "逆风", "钝化"
+    etf_net_flow: float | None  # ETF净流入/流出 (if available)
+    etf_aum: float | None  # ETF管理规模 (if available)
+
+
+@dataclass
 class StateResult:
     """Result of state machine evaluation."""
 
@@ -39,6 +50,7 @@ class StateResult:
     funding: FundingBehavior
     risk_level: str  # "HIGH", "MEDIUM", "LOW"
     confidence: float  # 0.0 to 1.0
+    validation: ValidationLayer  # 校验层
     metadata: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,6 +61,13 @@ class StateResult:
             "funding": self.funding.value,
             "risk_level": self.risk_level,
             "confidence": self.confidence,
+            "validation": {
+                "risk_thermometer": self.validation.risk_thermometer,
+                "ath_drawdown": self.validation.ath_drawdown,
+                "etf_accelerator": self.validation.etf_accelerator,
+                "etf_net_flow": self.validation.etf_net_flow,
+                "etf_aum": self.validation.etf_aum,
+            },
             "metadata": self.metadata or {},
         }
 
