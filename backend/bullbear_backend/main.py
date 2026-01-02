@@ -7,6 +7,8 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from bullbear_backend.data import DataFetcher, DataType
 from bullbear_backend.state_machine import StateMachineEngine
 
@@ -16,8 +18,6 @@ load_dotenv()
 app = FastAPI(title="BullBear Backend", version="0.1.0")
 
 # Enable CORS for frontend
-from fastapi.middleware.cors import CORSMiddleware
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify actual frontend URL

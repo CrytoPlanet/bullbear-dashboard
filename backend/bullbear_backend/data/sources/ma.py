@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from bullbear_backend.data.providers import get_provider
+from bullbear_backend.data.providers.binance import BinanceProvider
 from bullbear_backend.data.sources.base import BaseSource
 from bullbear_backend.data.types import DataResult, DataType
 
 
 class MaSource(BaseSource):
-    """Source for fetching moving averages from TAAPI.
+    """Source for fetching moving averages from Binance.
 
     Supports MA50 and MA200 for BTC.
+    Calculates MAs from daily closing prices.
     """
 
     def __init__(self, period: int) -> None:
@@ -23,7 +25,7 @@ class MaSource(BaseSource):
             raise ValueError(f"Unsupported MA period: {period}. Use 50 or 200.")
 
         self._period = period
-        self._provider = get_provider("taapi")
+        self._provider = get_provider("binance")
 
     def fetch(self) -> DataResult:
         """Fetch moving average value."""
@@ -40,9 +42,8 @@ class MaSource(BaseSource):
             provider=self._provider.name,
             metadata={
                 "period": self._period,
-                "exchange": getattr(self._provider, "DEFAULT_EXCHANGE", "binance"),
-                "symbol": getattr(self._provider, "DEFAULT_SYMBOL", "BTC/USDT"),
-                "interval": getattr(self._provider, "DEFAULT_INTERVAL", "1d"),
+                "symbol": BinanceProvider.DEFAULT_SYMBOL,
+                "interval": BinanceProvider.DEFAULT_INTERVAL,
             },
         )
 
