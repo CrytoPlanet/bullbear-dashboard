@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from bullbear_backend.data.providers import get_provider
 from bullbear_backend.data.providers.binance import BinanceProvider
 from bullbear_backend.data.sources.base import BaseSource
 from bullbear_backend.data.types import DataResult, DataType
@@ -24,7 +25,7 @@ class MaSource(BaseSource):
             raise ValueError(f"Unsupported MA period: {period}. Use 50 or 200.")
 
         self._period = period
-        self._provider = BinanceProvider()
+        self._provider = get_provider("binance")
 
     def fetch(self) -> DataResult:
         """Fetch moving average value."""
