@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "data_type": "ma50",
+  "value": 89281.2116,
+  "provider": "binance",
+  "metadata": {
+    "period": 50,
+    "symbol": "BTCUSDT",
+    "interval": "1d"
+  }
+}

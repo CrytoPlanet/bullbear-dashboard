@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "data_type": "ma200",
+  "value": 106722.55775,
+  "provider": "binance",
+  "metadata": {
+    "period": 200,
+    "symbol": "BTCUSDT",
+    "interval": "1d"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "state": "熊市反弹",
+  "trend": "趋势空",
+  "funding": "资金进攻",
+  "risk_level": "MEDIUM",
+  "confidence": 0.5238932783313907,
+  "validation": {
+    "risk_thermometer": "低/中烧",
+    "ath_drawdown": 26.834482578467288,
+    "etf_accelerator": "顺风",
+    "etf_net_flow": 471300000.0,
+    "etf_aum": 114869947552.0
+  },
+  "metadata": {
+    "btc_price": 91309.0,
+    "ma50": 89281.2116,
+    "ma200": 106722.55775,
+    "ma50_slope": -0.29313940737909644,
+    "ma200_slope": -0.08165421646653946,
+    "total_market_cap": 3201712674379.6475,
+    "stablecoin_market_cap": 268376919880.94687,
+    "stablecoin_ratio": 8.38229245330225,
+    "stablecoin_change": -48565122318.194305,
+    "stablecoin_ratio_change": 0.3822924533022505,
+    "stablecoin_slope": 0.47817193915360756,
+    "total_slope": 0.47817193915359035,
+    "ath_drawdown": 26.834482578467288
+  }
+}
