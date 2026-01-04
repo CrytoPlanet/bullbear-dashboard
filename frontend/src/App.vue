@@ -295,7 +295,24 @@ const getFundingPattern = () => {
 };
 
 // 计算状态切换信号（从当前状态切换到目标状态）
-const getStateTransitionSignals = () => {
+interface TransitionSignal {
+  name: string;
+  description: string;
+  active: boolean;
+  details: string;
+}
+
+interface Transition {
+  targetState: string;
+  targetTrend: string;
+  targetFunding: string;
+  signals: TransitionSignal[];
+  activeCount: number;
+  totalCount: number;
+  progress: number;
+}
+
+const getStateTransitionSignals = (): Transition[] => {
   if (!stateData.value?.metadata || !stateData.value?.state) return [];
   
   const currentState = stateData.value.state;
@@ -310,7 +327,7 @@ const getStateTransitionSignals = () => {
   const etfAccelerator = stateData.value?.validation?.etf_accelerator;
   const etfAum = stateData.value?.validation?.etf_aum;
   
-  const transitions = [];
+  const transitions: Transition[] = [];
   
   // 定义所有可能的状态切换
   const allStates = ['牛市进攻', '牛市修复', '熊市反弹', '熊市消化'];
@@ -708,7 +725,7 @@ onMounted(() => {
                   </span>
                 </div>
                 <div class="trend-detail">
-                  差值: {{ getPriceMA200Relation()?.diff > 0 ? '+' : '' }}{{ getPriceMA200Relation()?.diff.toFixed(2) }}%
+                  差值: {{ (() => { const rel = getPriceMA200Relation(); if (!rel) return '0.00'; return (rel.diff > 0 ? '+' : '') + rel.diff.toFixed(2); })() }}%
                 </div>
                 <div class="trend-description">
                   {{ getPriceMA200Relation()?.above 
@@ -1034,7 +1051,8 @@ onMounted(() => {
         </div>
         <div class="details-grid" v-if="Object.keys(data).length > 0">    
           <!-- 原始数据源信息-->
-          <div v-for="(item, key) in data" :key="key" class="detail-card" v-if="!['btc_price', 'ma50', 'ma200', 'etf_net_flow', 'etf_aum'].includes(key)">
+          <template v-for="(item, key) in data" :key="String(key)">
+            <div v-if="!['btc_price', 'ma50', 'ma200', 'etf_net_flow', 'etf_aum'].includes(String(key))" class="detail-card">
             <div class="detail-label">
               <span class="detail-icon">{{ getDataIcon(key as string) }}</span>
               {{ DATA_LABELS[key] || key }}
@@ -1049,6 +1067,7 @@ onMounted(() => {
               <span v-if="item.metadata?.description" class="detail-meta-item">{{ item.metadata.description }}</span>
             </div>
           </div>
+          </template>
         </div>
       </div>
     </main>
