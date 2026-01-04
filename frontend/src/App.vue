@@ -327,6 +327,7 @@ interface Transition {
   targetTrend: string;
   targetFunding: string;
   signals: TransitionSignal[];
+  validationSignals: TransitionSignal[]; // 校验层信号，不计入需要条件
   activeCount: number;
   totalCount: number;
   progress: number;
@@ -432,10 +433,78 @@ const getStateTransitionSignals = (): Transition[] => {
       });
     }
     
-    // 注意：检验层A（风险温度计）和检验层B（ETF加速器）的信息
-    // 已在检验层栏目中显示，不在状态切换信号中重复
+    // 校验层信号（不计入需要条件，仅作为校验）
+    const validationSignals: TransitionSignal[] = [];
     
-    // 计算激活的信号数量（只计算两个硬规则）
+    // 检验层A：风险温度计信号
+    const athDrawdown = stateData.value?.validation?.ath_drawdown;
+    const riskThermometer = stateData.value?.validation?.risk_thermometer;
+    
+    let riskSignal = false;
+    let riskDescription = '';
+    let riskDetails = '';
+    
+    if (targetState === '牛市进攻' || targetState === '牛市修复') {
+      // 牛市需要：正常体温或低/中烧（回撤率 < 35%）
+      riskSignal = athDrawdown !== undefined && athDrawdown < 35;
+      riskDescription = '风险温度计：正常体温或低/中烧（回撤率 < 35%）';
+      riskDetails = riskSignal
+        ? `当前回撤率：${athDrawdown?.toFixed(2)}%（${riskThermometer}），符合牛市条件`
+        : `需要回撤率 < 35%（当前：${athDrawdown?.toFixed(2) || 'N/A'}%）`;
+    } else if (targetState === '熊市反弹' || targetState === '熊市消化') {
+      // 熊市需要：高烧或生命体征极差（回撤率 >= 35%）
+      riskSignal = athDrawdown !== undefined && athDrawdown >= 35;
+      riskDescription = '风险温度计：高烧威胁或生命体征极差（回撤率 >= 35%）';
+      riskDetails = riskSignal
+        ? `当前回撤率：${athDrawdown?.toFixed(2)}%（${riskThermometer}），符合熊市条件`
+        : `需要回撤率 >= 35%（当前：${athDrawdown?.toFixed(2) || 'N/A'}%）`;
+    }
+    
+    validationSignals.push({
+      name: '风险温度计',
+      description: riskDescription,
+      active: riskSignal,
+      details: riskDetails
+    });
+    
+    // 检验层B：ETF 加速器信号
+    let etfSignal = false;
+    let etfDescription = '';
+    let etfDetails = '';
+    
+    if (targetState === '牛市进攻' || targetState === '牛市修复') {
+      // 牛市需要：ETF 顺风
+      etfSignal = etfAccelerator === '顺风' && etfAum && etfAum > 0;
+      etfDescription = 'ETF 加速器：顺风（持续净流入，AUM 回升）';
+      etfDetails = etfSignal && etfAum
+        ? `ETF 加速器：${etfAccelerator}，AUM：${formatETFValue(etfAum)}`
+        : `需要 ETF 转为持续净流入且 AUM 回升（当前：${etfAccelerator || '未知'}）`;
+    } else if (targetState === '熊市反弹' || targetState === '熊市消化') {
+      // 熊市反弹可能需要 ETF 钝化（卖压衰竭），熊市消化可能需要 ETF 逆风
+      if (targetState === '熊市反弹') {
+        etfSignal = etfAccelerator === '钝化' || (etfAccelerator === '顺风' && etfAum && etfAum > 0);
+        etfDescription = 'ETF 加速器：钝化或顺风（卖压衰竭或开始流入）';
+        etfDetails = etfSignal && etfAum
+          ? `ETF 加速器：${etfAccelerator}，AUM：${formatETFValue(etfAum)}`
+          : `需要 ETF 钝化（卖压衰竭）或转为顺风（当前：${etfAccelerator || '未知'}）`;
+      } else {
+        // 熊市消化：ETF 逆风或钝化都可以
+        etfSignal = etfAccelerator === '逆风' || etfAccelerator === '钝化';
+        etfDescription = 'ETF 加速器：逆风或钝化（持续流出或卖压衰竭）';
+        etfDetails = etfSignal && etfAum
+          ? `ETF 加速器：${etfAccelerator}，AUM：${formatETFValue(etfAum)}`
+          : `需要 ETF 逆风（持续流出）或钝化（卖压衰竭）（当前：${etfAccelerator || '未知'}）`;
+      }
+    }
+    
+    validationSignals.push({
+      name: 'ETF 加速器',
+      description: etfDescription,
+      active: etfSignal,
+      details: etfDetails
+    });
+    
+    // 计算激活的信号数量（只计算两个硬规则，不包括校验层）
     const activeCount = signals.filter(s => s.active).length;
     const totalCount = signals.length;
     
@@ -444,6 +513,7 @@ const getStateTransitionSignals = (): Transition[] => {
       targetTrend,
       targetFunding,
       signals,
+      validationSignals,
       activeCount,
       totalCount,
       progress: totalCount > 0 ? (activeCount / totalCount) * 100 : 0
@@ -953,7 +1023,8 @@ onMounted(() => {
                   <div class="etf-metric-value">
                     <span class="etf-icon">{{ stateData.validation.etf_net_flow > 0 ? '📈' : '📉' }}</span>
                     <span :class="stateData.validation.etf_net_flow > 0 ? 'positive' : 'negative'">
-                      {{ formatETFValue(stateData.validation.etf_net_flow) }}
+                      <span class="etf-full-value">{{ stateData.validation.etf_net_flow >= 0 ? '+' : '-' }}${{ Math.abs(stateData.validation.etf_net_flow).toLocaleString('en-US', { maximumFractionDigits: 0 }) }}</span>
+                      <span class="etf-compact-value">({{ formatETFValue(stateData.validation.etf_net_flow) }})</span>
                     </span>
                   </div>
                   <div class="etf-metric-desc">现货 ETF 的净资金流入（正数）或流出（负数）</div>
@@ -964,7 +1035,10 @@ onMounted(() => {
                 </div>
                 <div v-if="stateData.validation.etf_aum !== null && stateData.validation.etf_aum !== undefined" class="etf-metric-item">
                   <div class="etf-metric-label">资产管理规模 (AUM)</div>
-                  <div class="etf-metric-value">{{ formatETFValue(stateData.validation.etf_aum) }}</div>
+                  <div class="etf-metric-value">
+                    <span class="etf-full-value">${{ stateData.validation.etf_aum.toLocaleString('en-US', { maximumFractionDigits: 0 }) }}</span>
+                    <span class="etf-compact-value">({{ formatETFValue(stateData.validation.etf_aum) }})</span>
+                  </div>
                   <div class="etf-metric-desc">ETF 的总资产管理规模</div>
                 </div>
                 <div v-else class="etf-metric-item">
@@ -1037,6 +1111,25 @@ onMounted(() => {
                         <div class="signal-name-small">{{ signal.name }}</div>
                         <div class="signal-desc-small">{{ signal.description }}</div>
                         <div class="signal-details-small">{{ signal.details }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- 校验层（不计入需要条件） -->
+                  <div v-if="transition.validationSignals && transition.validationSignals.length > 0" class="validation-signals-section">
+                    <div class="validation-label">校验层（仅供参考）：</div>
+                    <div class="signals-list">
+                      <div 
+                        v-for="(signal, sigIndex) in transition.validationSignals" 
+                        :key="`validation-${sigIndex}`"
+                        class="signal-item validation-signal"
+                        :class="{ active: signal.active }"
+                      >
+                        <span class="signal-check">{{ signal.active ? '✅' : '⏳' }}</span>
+                        <div class="signal-content">
+                          <div class="signal-name-small">{{ signal.name }}</div>
+                          <div class="signal-desc-small">{{ signal.description }}</div>
+                          <div class="signal-details-small">{{ signal.details }}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1381,6 +1474,18 @@ h1 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.etf-full-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.etf-compact-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  opacity: 0.8;
 }
 
 .etf-metric-value.unavailable {
@@ -1459,7 +1564,7 @@ h1 {
 .axis-y-label {
   position: absolute;
   left: -3.5rem;
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: #f1f5f9;
   white-space: nowrap;
@@ -1476,7 +1581,7 @@ h1 {
 }
 
 .axis-y-label.bottom {
-  bottom: 0.5rem;
+  bottom: 0;
   height: auto;
 }
 
@@ -2358,6 +2463,29 @@ h1 {
   font-size: 0.7rem;
   color: #64748b;
   line-height: 1.3;
+}
+
+/* 校验层信号 */
+.validation-signals-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #334155;
+}
+
+.validation-label {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.validation-signal {
+  opacity: 0.85;
+}
+
+.validation-signal.active {
+  opacity: 1;
 }
 
 /* 详细数据 */
