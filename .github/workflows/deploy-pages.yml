@@ -24,17 +24,17 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: 安装前端依赖
         run: |
