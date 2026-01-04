@@ -144,6 +144,26 @@ const fetchState = async () => {
   }
 };
 
+// 格式化 ETF 数据，显示 B（十亿）或 T（万亿）单位
+const formatETFValue = (value: number): string => {
+  const absValue = Math.abs(value);
+  if (absValue >= 1_000_000_000_000) {
+    // 万亿 (Trillion)
+    const trillions = absValue / 1_000_000_000_000;
+    return `${value >= 0 ? '+' : '-'}$${trillions.toFixed(2)}T`;
+  } else if (absValue >= 1_000_000_000) {
+    // 十亿 (Billion)
+    const billions = absValue / 1_000_000_000;
+    return `${value >= 0 ? '+' : '-'}$${billions.toFixed(2)}B`;
+  } else if (absValue >= 1_000_000) {
+    // 百万 (Million)
+    const millions = absValue / 1_000_000;
+    return `${value >= 0 ? '+' : '-'}$${millions.toFixed(2)}M`;
+  } else {
+    return `${value >= 0 ? '+' : '-'}$${absValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  }
+};
+
 const formatValue = (value: number, type: string) => {
   if (type.includes('market_cap') || type.includes('etf_aum')) {
     return new Intl.NumberFormat('en-US', {
@@ -412,77 +432,10 @@ const getStateTransitionSignals = (): Transition[] => {
       });
     }
     
-    // 3. 检验层A：风险温度计信号
-    const athDrawdown = stateData.value?.validation?.ath_drawdown;
-    const riskThermometer = stateData.value?.validation?.risk_thermometer;
+    // 注意：检验层A（风险温度计）和检验层B（ETF加速器）的信息
+    // 已在检验层栏目中显示，不在状态切换信号中重复
     
-    // 根据目标状态判断需要的风险温度计条件
-    let riskSignal = false;
-    let riskDescription = '';
-    let riskDetails = '';
-    
-    if (targetState === '牛市进攻' || targetState === '牛市修复') {
-      // 牛市需要：正常体温或低/中烧（回撤率 < 35%）
-      riskSignal = athDrawdown !== undefined && athDrawdown < 35;
-      riskDescription = '风险温度计：正常体温或低/中烧（回撤率 < 35%）';
-      riskDetails = riskSignal
-        ? `当前回撤率：${athDrawdown?.toFixed(2)}%（${riskThermometer}），符合牛市条件`
-        : `需要回撤率 < 35%（当前：${athDrawdown?.toFixed(2) || 'N/A'}%）`;
-    } else if (targetState === '熊市反弹' || targetState === '熊市消化') {
-      // 熊市需要：高烧或生命体征极差（回撤率 >= 35%）
-      riskSignal = athDrawdown !== undefined && athDrawdown >= 35;
-      riskDescription = '风险温度计：高烧威胁或生命体征极差（回撤率 >= 35%）';
-      riskDetails = riskSignal
-        ? `当前回撤率：${athDrawdown?.toFixed(2)}%（${riskThermometer}），符合熊市条件`
-        : `需要回撤率 >= 35%（当前：${athDrawdown?.toFixed(2) || 'N/A'}%）`;
-    }
-    
-    signals.push({
-      name: '风险温度计',
-      description: riskDescription,
-      active: riskSignal,
-      details: riskDetails
-    });
-    
-    // 4. 检验层B：ETF 加速器信号
-    // 对于所有状态切换，ETF 信号都有参考价值
-    let etfSignal = false;
-    let etfDescription = '';
-    let etfDetails = '';
-    
-    if (targetState === '牛市进攻' || targetState === '牛市修复') {
-      // 牛市需要：ETF 顺风
-      etfSignal = etfAccelerator === '顺风' && etfAum && etfAum > 0;
-      etfDescription = 'ETF 加速器：顺风（持续净流入，AUM 回升）';
-      etfDetails = etfSignal
-        ? `ETF 加速器：${etfAccelerator}，AUM：$${etfAum?.toLocaleString()}`
-        : `需要 ETF 转为持续净流入且 AUM 回升（当前：${etfAccelerator || '未知'}）`;
-    } else if (targetState === '熊市反弹' || targetState === '熊市消化') {
-      // 熊市反弹可能需要 ETF 钝化（卖压衰竭），熊市消化可能需要 ETF 逆风
-      if (targetState === '熊市反弹') {
-        etfSignal = etfAccelerator === '钝化' || (etfAccelerator === '顺风' && etfAum && etfAum > 0);
-        etfDescription = 'ETF 加速器：钝化或顺风（卖压衰竭或开始流入）';
-        etfDetails = etfSignal
-          ? `ETF 加速器：${etfAccelerator}，AUM：$${etfAum?.toLocaleString()}`
-          : `需要 ETF 钝化（卖压衰竭）或转为顺风（当前：${etfAccelerator || '未知'}）`;
-      } else {
-        // 熊市消化：ETF 逆风或钝化都可以
-        etfSignal = etfAccelerator === '逆风' || etfAccelerator === '钝化';
-        etfDescription = 'ETF 加速器：逆风或钝化（持续流出或卖压衰竭）';
-        etfDetails = etfSignal
-          ? `ETF 加速器：${etfAccelerator}，AUM：$${etfAum?.toLocaleString()}`
-          : `需要 ETF 逆风（持续流出）或钝化（卖压衰竭）（当前：${etfAccelerator || '未知'}）`;
-      }
-    }
-    
-    signals.push({
-      name: 'ETF 加速器',
-      description: etfDescription,
-      active: etfSignal,
-      details: etfDetails
-    });
-    
-    // 计算激活的信号数量
+    // 计算激活的信号数量（只计算两个硬规则）
     const activeCount = signals.filter(s => s.active).length;
     const totalCount = signals.length;
     
@@ -1000,7 +953,7 @@ onMounted(() => {
                   <div class="etf-metric-value">
                     <span class="etf-icon">{{ stateData.validation.etf_net_flow > 0 ? '📈' : '📉' }}</span>
                     <span :class="stateData.validation.etf_net_flow > 0 ? 'positive' : 'negative'">
-                      {{ stateData.validation.etf_net_flow > 0 ? '+' : '' }}${{ Math.abs(stateData.validation.etf_net_flow).toLocaleString() }}
+                      {{ formatETFValue(stateData.validation.etf_net_flow) }}
                     </span>
                   </div>
                   <div class="etf-metric-desc">现货 ETF 的净资金流入（正数）或流出（负数）</div>
@@ -1011,7 +964,7 @@ onMounted(() => {
                 </div>
                 <div v-if="stateData.validation.etf_aum !== null && stateData.validation.etf_aum !== undefined" class="etf-metric-item">
                   <div class="etf-metric-label">资产管理规模 (AUM)</div>
-                  <div class="etf-metric-value">${{ stateData.validation.etf_aum.toLocaleString() }}</div>
+                  <div class="etf-metric-value">{{ formatETFValue(stateData.validation.etf_aum) }}</div>
                   <div class="etf-metric-desc">ETF 的总资产管理规模</div>
                 </div>
                 <div v-else class="etf-metric-item">
@@ -1506,7 +1459,7 @@ h1 {
 .axis-y-label {
   position: absolute;
   left: -3.5rem;
-  font-size: 1.125rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #f1f5f9;
   white-space: nowrap;
