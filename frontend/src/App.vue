@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { type DataResult, DATA_LABELS, type StateApiResponse, STATE_STYLES, RISK_COLORS } from './types';
 
-const API_BASE_URL = 'http://localhost:8000';
+// 检测是否为开发环境（localhost）
+const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isDevelopment ? 'http://localhost:8000' : '';
 
 const data = ref<Record<string, DataResult>>({});
 const stateData = ref<StateApiResponse | null>(null);
@@ -13,32 +15,92 @@ const error = ref<string | null>(null);
 
 const DATA_TYPES = ['btc_price', 'total_market_cap', 'stablecoin_market_cap', 'ma50', 'ma200', 'etf_net_flow', 'etf_aum'];
 
-const fetchData = async () => {
-  error.value = null;
-  
+// 从静态文件读取数据（用于 GitHub Pages）
+const fetchDataFromStatic = async () => {
   try {
-    // 逐步获取数据，让数据可以逐步显示
+    // 使用相对路径，兼容 GitHub Pages 部署
+    const basePath = import.meta.env.BASE_URL || '/';
+    const response = await fetch(`${basePath}data/all_data.json`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch static data: ${response.status}`);
+    }
+    const json = await response.json();
+    if (json.ok && json.data) {
+      // 将数据转换为 DataResult 格式
+      for (const [type, result] of Object.entries(json.data)) {
+        data.value[type] = result as DataResult;
+      }
+      return true;
+    }
+    return false;
+  } catch (e: any) {
+    console.warn('无法从静态文件读取数据:', e);
+    return false;
+  }
+};
+
+// 从API获取数据
+const fetchDataFromAPI = async () => {
+  try {
     const promises = DATA_TYPES.map(async (type) => {
       const response = await fetch(`${API_BASE_URL}/api/data/${type}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch ${type}: ${response.status}`);
       }
       const json = await response.json();
-      // 立即更新数据，让用户看到数据逐步加载
       data.value[type] = json as DataResult;
-      return { type, result: json as DataResult }; 
+      return { type, result: json as DataResult };
     });
-
     await Promise.all(promises);
-    
+    return true;
   } catch (e: any) {
-    error.value = e.message || 'Failed to fetch data';
-    console.error(e);
+    console.warn('无法从API获取数据:', e);
+    return false;
   }
 };
 
-const fetchState = async () => {
-  stateLoading.value = true;
+const fetchData = async () => {
+  error.value = null;
+  
+  // 如果是开发环境，优先使用API；否则使用静态文件
+  if (isDevelopment) {
+    const apiSuccess = await fetchDataFromAPI();
+    if (!apiSuccess) {
+      // API失败时尝试静态文件
+      await fetchDataFromStatic();
+    }
+  } else {
+    // 生产环境优先使用静态文件
+    const staticSuccess = await fetchDataFromStatic();
+    if (!staticSuccess) {
+      error.value = '无法加载数据，请稍后重试';
+    }
+  }
+};
+
+// 从静态文件读取状态
+const fetchStateFromStatic = async () => {
+  try {
+    // 使用相对路径，兼容 GitHub Pages 部署
+    const basePath = import.meta.env.BASE_URL || '/';
+    const response = await fetch(`${basePath}data/state.json`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch static state: ${response.status}`);
+    }
+    const json = await response.json();
+    if (json.ok) {
+      stateData.value = json as StateApiResponse;
+      return true;
+    }
+    return false;
+  } catch (e: any) {
+    console.warn('无法从静态文件读取状态:', e);
+    return false;
+  }
+};
+
+// 从API获取状态
+const fetchStateFromAPI = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/state`);
     if (!response.ok) {
@@ -46,9 +108,34 @@ const fetchState = async () => {
     }
     const json = await response.json();
     stateData.value = json as StateApiResponse;
+    return true;
+  } catch (e: any) {
+    console.warn('无法从API获取状态:', e);
+    return false;
+  }
+};
+
+const fetchState = async () => {
+  stateLoading.value = true;
+  try {
+    // 如果是开发环境，优先使用API；否则使用静态文件
+    if (isDevelopment) {
+      const apiSuccess = await fetchStateFromAPI();
+      if (!apiSuccess) {
+        // API失败时尝试静态文件
+        await fetchStateFromStatic();
+      }
+    } else {
+      // 生产环境优先使用静态文件
+      const staticSuccess = await fetchStateFromStatic();
+      if (!staticSuccess) {
+        if (!error.value) {
+          error.value = '无法加载状态数据，请稍后重试';
+        }
+      }
+    }
   } catch (e: any) {
     console.error('Failed to fetch state:', e);
-    // 如果状态获取失败，设置错误信息（但不覆盖数据获取的错误）
     if (!error.value) {
       error.value = `状态获取失败: ${e.message || '未知错误'}`;
     }
