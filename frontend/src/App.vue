@@ -1581,7 +1581,7 @@ h1 {
 }
 
 .axis-y-label.bottom {
-  bottom: 0;
+  bottom: 3em;
   height: auto;
 }
 
