@@ -59,7 +59,10 @@ jobs:
           path: frontend/dist
 
   deploy:
-    # 只在 main 分支部署到 GitHub Pages
+    # Only deploy to GitHub Pages from main branch
+    # To allow feat branches to deploy, modify environment protection rules:
+    # Settings > Environments > github-pages > Deployment branches
+    # Add 'feat/**' pattern or select 'All branches'
     if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
