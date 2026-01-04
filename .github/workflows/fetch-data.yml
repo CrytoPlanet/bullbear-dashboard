@@ -6,7 +6,11 @@ on:
     - cron: '0 */12 * * *'
   push:
     branches:
-      - main  # 只在 main 分支推送时触发
+      - main
+      - 'feat/**'  # feat 分支也可以触发（用于测试）
+  pull_request:
+    branches:
+      - main  # PR 到 main 时也触发（用于测试）
   workflow_dispatch: # 允许手动触发
 
 jobs:
@@ -36,9 +40,18 @@ jobs:
           python scripts/fetch_and_save_data.py
 
       - name: 提交数据文件
+        # 只在非 PR 的情况下提交（PR 时只测试，不提交）
+        if: github.event_name != 'pull_request'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add frontend/public/data/*.json
           git diff --staged --quiet || (git commit -m "自动更新市场数据 [skip ci]" && git push)
+      
+      - name: PR 测试提示
+        # 在 PR 时显示测试结果
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "✅ 数据获取测试完成（PR 模式，未提交文件）"
+          echo "📦 数据文件已生成，可在构建产物中查看"
 
