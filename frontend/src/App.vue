@@ -302,6 +302,45 @@ const getTrendQuality = () => {
   return null;
 };
 
+// 获取资金组合模式信息（基于斜率）
+const getFundingPatternInfo = () => {
+  if (!stateData.value?.metadata) return null;
+  const stablecoinSlope = stateData.value.metadata.stablecoin_slope;
+  const totalSlope = stateData.value.metadata.total_slope;
+  
+  if (stablecoinSlope === undefined || totalSlope === undefined) return null;
+  
+  const stablecoinTrend = stablecoinSlope > 0 ? '↑' : '↓';
+  const totalTrend = totalSlope > 0 ? '↑' : '↓';
+  
+  // 根据后端逻辑匹配模式
+  if (stablecoinTrend === '↑' && totalTrend === '↑') {
+    return {
+      pattern: 'Stable ↑ + Total ↑',
+      name: '增量进攻',
+      funding: '资金进攻'
+    };
+  } else if (stablecoinTrend === '↓' && totalTrend === '↑') {
+    return {
+      pattern: 'Stable ↓ + Total ↑',
+      name: '强力进攻',
+      funding: '资金进攻'
+    };
+  } else if (stablecoinTrend === '↑' && totalTrend === '↓') {
+    return {
+      pattern: 'Stable ↑ + Total ↓',
+      name: '去风险防守',
+      funding: '资金防守'
+    };
+  } else { // stablecoinTrend === '↓' && totalTrend === '↓'
+    return {
+      pattern: 'Stable ↓ + Total ↓',
+      name: '深度防守/撤退',
+      funding: '资金防守'
+    };
+  }
+};
+
 // 获取资金姿态组合模式
 const getFundingPattern = () => {
   if (!stateData.value?.metadata) return null;
@@ -943,10 +982,10 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div v-if="stateData.metadata?.stablecoin_slope !== undefined && stateData.metadata?.total_slope !== undefined" class="funding-combination">
+            <div v-if="getFundingPatternInfo()" class="funding-combination">
               <div class="combination-label">当前组合模式：</div>
               <div class="combination-pattern">
-                Stable {{ stateData.metadata.stablecoin_slope > 0 ? '↑' : '↓' }} + Total {{ stateData.metadata.total_slope > 0 ? '↑' : '↓' }}
+                {{ getFundingPatternInfo()?.pattern }} - {{ getFundingPatternInfo()?.name }}
               </div>
             </div>
           </div>
@@ -957,22 +996,22 @@ onMounted(() => {
               <h3>资金组合模式</h3>
             </div>
             <div class="funding-patterns">
-              <div class="funding-pattern-item" :class="{ active: stateData.funding === '资金进攻' && stateData.trend === '趋势多' }">
+              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↑ + Total ↑' }">
                 <div class="pattern-indicator">Stable ↑ + Total ↑</div>
                 <div class="pattern-name">增量进攻</div>
                 <div class="pattern-desc">场内现金变多，且资产也在涨，说明场外资金进场。偏进攻/偏牛</div>
               </div>
-              <div class="funding-pattern-item" :class="{ active: stateData.funding === '资金进攻' && stateData.trend === '趋势空' }">
+              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↓ + Total ↑' }">
                 <div class="pattern-indicator">Stable ↓ + Total ↑</div>
                 <div class="pattern-name">强力进攻</div>
                 <div class="pattern-desc">稳定币池子缩小换成币，风险资产大幅扩张。<strong>最强进攻状态</strong></div>
               </div>
-              <div class="funding-pattern-item" :class="{ active: stateData.funding === '资金防守' && stateData.trend === '趋势多' }">
+              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↑ + Total ↓' }">
                 <div class="pattern-indicator">Stable ↑ + Total ↓</div>
                 <div class="pattern-name">去风险防守</div>
                 <div class="pattern-desc">币缩水，现金变大，投资者卖币换钱躲避风险。典型去风险/防守</div>
               </div>
-              <div class="funding-pattern-item" :class="{ active: stateData.funding === '资金防守' && stateData.trend === '趋势空' }">
+              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↓ + Total ↓' }">
                 <div class="pattern-indicator">Stable ↓ + Total ↓</div>
                 <div class="pattern-name">深度防守/撤退</div>
                 <div class="pattern-desc">资产和现金同步缩水，说明资金彻底离开加密体系。更强的防守/彻底熊</div>
