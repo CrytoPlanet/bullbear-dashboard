@@ -59,12 +59,12 @@ jobs:
           path: frontend/dist
 
   deploy:
-    # Only deploy to GitHub Pages from main branch
-    # For feat branches, build will run but deployment will be skipped due to environment protection rules
-    # To allow feat branches to deploy, modify environment protection rules:
-    # Settings > Environments > github-pages > Deployment branches
-    # Add 'feat/**' pattern or select 'All branches'
-    if: github.ref == 'refs/heads/main'
+    # Deploy to GitHub Pages for both main and feat branches
+    # Note: For feat branches to deploy, you need to modify environment protection rules:
+    # 1. Go to Settings > Environments > github-pages
+    # 2. Under "Deployment branches", select "Selected branches"
+    # 3. Add 'feat/**' pattern or select "All branches"
+    # 4. Save the changes
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -74,17 +74,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  # Build only for feat branches (for testing, no deployment)
-  build-test:
-    # Only run for feat branches
-    if: startsWith(github.ref, 'refs/heads/feat/')
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Build completed (test mode)
-        run: |
-          echo "✅ Build successful for feat branch!"
-          echo "📦 Build artifacts are available in the build job"
-          echo "💡 To deploy to GitHub Pages, merge to main branch or modify environment protection rules"
 
