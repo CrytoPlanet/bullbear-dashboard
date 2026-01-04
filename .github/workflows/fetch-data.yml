@@ -2,12 +2,13 @@ name: 获取市场数据
 
 on:
   schedule:
-    # 每12小时运行一次 (UTC时间 00:00 和 12:00)
+    # Run every 12 hours (UTC 00:00 and 12:00)
     - cron: '0 */12 * * *'
   push:
     branches:
-      - main  # 只在 main 分支推送时触发
-  workflow_dispatch: # 允许手动触发
+      - main
+      - 'feat/**'  # Also trigger on feat branches for testing
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   fetch-data:
@@ -35,10 +36,20 @@ jobs:
           cd backend
           python scripts/fetch_and_save_data.py
 
-      - name: 提交数据文件
+      - name: Commit data files
+        # Only commit on main branch, feat branches just test
+        if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add frontend/public/data/*.json
-          git diff --staged --quiet || (git commit -m "自动更新市场数据 [skip ci]" && git push)
+          git diff --staged --quiet || (git commit -m "Auto update market data [skip ci]" && git push)
+      
+      - name: Test mode (feat branch)
+        # Show test results for feat branches
+        if: startsWith(github.ref, 'refs/heads/feat/') && github.event_name != 'schedule'
+        run: |
+          echo "✅ Data fetch test completed (feat branch mode, files not committed)"
+          echo "📦 Data files generated successfully"
+          echo "💡 Files will be committed when merged to main branch"
 
