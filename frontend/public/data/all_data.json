@@ -3,7 +3,7 @@
   "data": {
     "btc_price": {
       "data_type": "btc_price",
-      "value": 91313.0,
+      "value": 91279.0,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
@@ -19,7 +19,7 @@
     },
     "stablecoin_market_cap": {
       "data_type": "stablecoin_market_cap",
-      "value": 268363479865.6014,
+      "value": 268367111890.52286,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
