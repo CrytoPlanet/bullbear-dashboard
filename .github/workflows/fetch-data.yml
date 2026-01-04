@@ -6,8 +6,7 @@ on:
     - cron: '0 */12 * * *'
   push:
     branches:
-      - main
-      - 'feat/**'  # feat 分支推送时也触发
+      - main  # 只在 main 分支推送时触发
   workflow_dispatch: # 允许手动触发
 
 jobs:

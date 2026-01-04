@@ -59,6 +59,8 @@ jobs:
           path: frontend/dist
 
   deploy:
+    # 只在 main 分支部署到 GitHub Pages
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
