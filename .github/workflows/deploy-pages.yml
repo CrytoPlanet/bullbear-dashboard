@@ -9,6 +9,9 @@ on:
     workflows: ["获取市场数据"]
     types:
       - completed
+    branches:
+      - main
+      - 'feat/**'
   workflow_dispatch: # 允许手动触发
 
 permissions:
@@ -29,7 +32,8 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
+          fetch-depth: 0
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v2
