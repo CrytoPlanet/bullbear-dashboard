@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "data_type": "etf_net_flow",
+  "value": 471300000.0,
+  "provider": "farside",
+  "metadata": {
+    "currency": "USD",
+    "description": "现货 ETF 的净资金流入（正数）或流出（负数）"
+  }
+}

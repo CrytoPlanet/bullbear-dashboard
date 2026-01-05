@@ -1,0 +1,3 @@
+# 此目录用于存储从 GitHub Actions 获取的市场数据
+# 数据文件将由 .github/workflows/fetch-data.yml 自动生成
+

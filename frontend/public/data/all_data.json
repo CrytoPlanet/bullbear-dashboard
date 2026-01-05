@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "data": {
+    "btc_price": {
+      "data_type": "btc_price",
+      "value": 92344.0,
+      "provider": "coingecko",
+      "metadata": {
+        "currency": "USD"
+      }
+    },
+    "total_market_cap": {
+      "data_type": "total_market_cap",
+      "value": 3235377745177.7036,
+      "provider": "coingecko",
+      "metadata": {
+        "currency": "USD"
+      }
+    },
+    "stablecoin_market_cap": {
+      "data_type": "stablecoin_market_cap",
+      "value": 268348115911.3493,
+      "provider": "coingecko",
+      "metadata": {
+        "currency": "USD"
+      }
+    },
+    "ma50": {
+      "data_type": "ma50",
+      "value": 89255.36099999999,
+      "provider": "binance",
+      "metadata": {
+        "period": 50,
+        "symbol": "BTCUSDT",
+        "interval": "1d"
+      }
+    },
+    "ma200": {
+      "data_type": "ma200",
+      "value": 106663.994,
+      "provider": "binance",
+      "metadata": {
+        "period": 200,
+        "symbol": "BTCUSDT",
+        "interval": "1d"
+      }
+    },
+    "etf_net_flow": {
+      "data_type": "etf_net_flow",
+      "value": 471300000.0,
+      "provider": "farside",
+      "metadata": {
+        "currency": "USD",
+        "description": "现货 ETF 的净资金流入（正数）或流出（负数）"
+      }
+    },
+    "etf_aum": {
+      "data_type": "etf_aum",
+      "value": 114869947552.0,
+      "provider": "yfinance",
+      "metadata": {
+        "currency": "USD",
+        "description": "ETF 的总资产管理规模"
+      }
+    }
+  },
+  "timestamp": null
+}

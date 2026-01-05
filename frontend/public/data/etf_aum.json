@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "data_type": "etf_aum",
+  "value": 114869947552.0,
+  "provider": "yfinance",
+  "metadata": {
+    "currency": "USD",
+    "description": "ETF 的总资产管理规模"
+  }
+}

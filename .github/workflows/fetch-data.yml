@@ -1,0 +1,44 @@
+name: 获取市场数据
+
+on:
+  schedule:
+    # 每6小时运行一次 (UTC时间 00:00 / 06:00 / 12:00 / 18:00)
+    - cron: '0 */6 * * *'
+  push:
+    branches:
+      - main
+      - 'feat/**'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖
+        run: |
+          cd backend
+          pip install fastapi uvicorn requests python-dotenv pandas lxml html5lib cloudscraper yfinance
+
+      - name: 获取市场数据
+        env:
+          CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
+          TAAPI_SECRET: ${{ secrets.TAAPI_SECRET }}
+        run: |
+          cd backend
+          python scripts/fetch_and_save_data.py
+
+      - name: 提交数据文件
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add frontend/public/data/*.json
+          git diff --staged --quiet || (git commit -m "自动更新市场数据 [skip ci]" && git push)
