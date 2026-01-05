@@ -164,6 +164,18 @@ const formatETFValue = (value: number): string => {
   }
 };
 
+const formatRatioPercent = (value: number | null | undefined, digits = 1): string => {
+  if (value === null || value === undefined) return '—';
+  return `${(value * 100).toFixed(digits)}%`;
+};
+
+const getTrendBadge = (trend: string | null | undefined) => {
+  if (trend === 'up') return { text: '向上', className: 'positive', icon: '📈' };
+  if (trend === 'down') return { text: '向下', className: 'negative', icon: '📉' };
+  if (trend === 'flat') return { text: '走平', className: 'neutral', icon: '➖' };
+  return { text: '未知', className: 'neutral', icon: '—' };
+};
+
 const formatValue = (value: number, type: string) => {
   if (type.includes('market_cap') || type.includes('etf_aum')) {
     return new Intl.NumberFormat('en-US', {
@@ -226,19 +238,47 @@ const getRiskThermometerColor = (thermometer: string) => {
   }
 };
 
-// 获取价格与MA200的关系
-const getPriceMA200Relation = () => {
+// 获取价格与均线（MA50/MA200）的关系
+const getPriceMARelation = () => {
   if (!stateData.value?.metadata) return null;
   const btcPrice = stateData.value.metadata.btc_price;
+  const ma50 = stateData.value.metadata.ma50;
   const ma200 = stateData.value.metadata.ma200;
-  if (!btcPrice || !ma200) return null;
-  
-  const diff = ((btcPrice - ma200) / ma200) * 100;
+  if (btcPrice == null || ma50 == null || ma200 == null) return null;
+
+  const above50 = btcPrice > ma50;
+  const above200 = btcPrice > ma200;
+  const diff50 = ((btcPrice - ma50) / ma50) * 100;
+  const diff200 = ((btcPrice - ma200) / ma200) * 100;
+
+  let statusText = '价格与均线重合或数据不足';
+  let summary = '价格与均线重合或数据不足，趋势无法判定';
+  let statusClass = '';
+
+  if (above50 && above200) {
+    statusText = '价格在 MA50 和 MA200 上方';
+    summary = '多头排列条件之一：价格在 MA200 上方（且高于 MA50）';
+    statusClass = 'positive';
+  } else if (!above50 && !above200) {
+    statusText = '价格在 MA50 和 MA200 下方';
+    summary = '空头排列条件之一：价格在 MA200 下方（且低于 MA50）';
+    statusClass = 'negative';
+  } else if (above50 && !above200) {
+    statusText = '价格在 MA50 上方、MA200 下方';
+    summary = '价格处于 MA50 与 MA200 之间，趋势未成列';
+  } else if (!above50 && above200) {
+    statusText = '价格在 MA50 下方、MA200 上方';
+    summary = '价格低于 MA50 但高于 MA200，信号分歧';
+  }
+
   return {
-    above: btcPrice > ma200,
-    below: btcPrice < ma200,
-    diff: diff,
-    diffAbs: Math.abs(diff)
+    above50,
+    above200,
+    diff50,
+    diff200,
+    statusText,
+    summary,
+    statusClass,
   };
 };
 
@@ -246,17 +286,21 @@ const getPriceMA200Relation = () => {
 const getTrendConclusion = () => {
   if (!stateData.value?.metadata) return null;
   const btcPrice = stateData.value.metadata.btc_price;
+  const ma50 = stateData.value.metadata.ma50;
   const ma200 = stateData.value.metadata.ma200;
   const ma200Slope = stateData.value.metadata.ma200_slope;
   
-  if (!btcPrice || !ma200 || ma200Slope === undefined) return null;
+  if (btcPrice == null || ma50 == null || ma200 == null || ma200Slope === undefined) return null;
   
   // 多头排列：价格在 MA200 上方，且 MA200 走平或向上（斜率 >= 0）
   if (btcPrice > ma200 && ma200Slope >= 0) {
+    const isBullStack = ma50 > ma200;
     return {
       type: 'bullish',
-      name: '多头排列（趋势多）',
-      description: '价格在 MA200 上方，且 MA200 走平或向上',
+      name: isBullStack ? '多头排列（趋势多）' : '趋势多',
+      description: isBullStack
+        ? '价格在 MA200 上方，MA200 走平或向上，且 MA50 在 MA200 上方'
+        : '价格在 MA200 上方，且 MA200 走平或向上',
       color: '#10b981',
       icon: '📈'
     };
@@ -264,10 +308,13 @@ const getTrendConclusion = () => {
   
   // 空头排列：价格在 MA200 下方，且 MA200 趋势向下（斜率 < 0）
   if (btcPrice < ma200 && ma200Slope < 0) {
+    const isBearStack = btcPrice < ma50 && ma50 < ma200;
     return {
       type: 'bearish',
-      name: '空头排列（趋势空）',
-      description: '价格在 MA200 下方，且 MA200 趋势向下',
+      name: isBearStack ? '空头排列（趋势空）' : '趋势空',
+      description: isBearStack
+        ? '价格在 MA200 下方，MA200 趋势向下，且 MA50 在 MA200 下方'
+        : '价格在 MA200 下方，且 MA200 趋势向下',
       color: '#ef4444',
       icon: '📉'
     };
@@ -683,6 +730,15 @@ onMounted(() => {
             <div class="metric-item">
               <span class="metric-label">置信度</span>
               <span class="metric-value">{{ (stateData.confidence * 100).toFixed(1) }}%</span>
+              <div class="metric-tooltip">
+                <span class="tooltip-icon">ℹ️</span>
+                <div class="tooltip-content">
+                  <strong>置信度说明：</strong><br>
+                  • 由“趋势结构 + 资金姿态”一致性计算<br>
+                  • 越接近 100% 表示信号更一致、结构更清晰<br>
+                  • 低置信度通常来自斜率走平或信号分歧
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -858,22 +914,25 @@ onMounted(() => {
             <div class="trend-card">
               <div class="trend-card-header">
                 <span class="trend-icon">📊</span>
-                <h3>价格与MA200关系</h3>
+              <h3>价格与均线关系</h3>
               </div>
-              <div v-if="getPriceMA200Relation()" class="trend-content">
-                <div class="trend-status" :class="getPriceMA200Relation()?.above ? 'positive' : 'negative'">
-                  <span class="trend-indicator">{{ getPriceMA200Relation()?.above ? '📈' : '📉' }}</span>
+              <div v-if="getPriceMARelation()" class="trend-content">
+                <div class="trend-status" :class="getPriceMARelation()?.statusClass">
+                  <span class="trend-indicator">
+                    {{ getPriceMARelation()?.statusClass === 'positive' ? '📈' : getPriceMARelation()?.statusClass === 'negative' ? '📉' : '⚖️' }}
+                  </span>
                   <span class="trend-text">
-                    {{ getPriceMA200Relation()?.above ? '价格在 MA200 上方' : '价格在 MA200 下方' }}
+                    {{ getPriceMARelation()?.statusText }}
                   </span>
                 </div>
                 <div class="trend-detail">
-                  差值: {{ (() => { const rel = getPriceMA200Relation(); if (!rel) return '0.00'; return (rel.diff > 0 ? '+' : '') + rel.diff.toFixed(2); })() }}%
+                  MA50 差值: {{ (() => { const rel = getPriceMARelation(); if (!rel) return '0.00'; return (rel.diff50 > 0 ? '+' : '') + rel.diff50.toFixed(2); })() }}%
+                </div>
+                <div class="trend-detail">
+                  MA200 差值: {{ (() => { const rel = getPriceMARelation(); if (!rel) return '0.00'; return (rel.diff200 > 0 ? '+' : '') + rel.diff200.toFixed(2); })() }}%
                 </div>
                 <div class="trend-description">
-                  {{ getPriceMA200Relation()?.above 
-                    ? '多头排列条件之一：价格在 MA200 上方' 
-                    : '空头排列条件之一：价格在 MA200 下方' }}
+                  {{ getPriceMARelation()?.summary }}
                 </div>
               </div>
               <div v-else class="trend-content">
@@ -1060,6 +1119,9 @@ onMounted(() => {
             <div class="thermometer" :style="{ color: getRiskThermometerColor(stateData.validation.risk_thermometer) }">
               <div class="thermometer-label">{{ stateData.validation.risk_thermometer }}</div>
               <div class="thermometer-value">{{ stateData.validation.ath_drawdown.toFixed(2) }}%</div>
+              <div v-if="stateData.validation.ath_price !== null && stateData.validation.ath_price !== undefined" class="thermometer-ath">
+                ATH: ${{ stateData.validation.ath_price.toLocaleString('en-US', { maximumFractionDigits: 0 }) }}
+              </div>
             </div>
             <div class="thermometer-info">
               <p>公式: (ATH - 当前价格) / ATH × 100%</p>
@@ -1112,6 +1174,65 @@ onMounted(() => {
                   <div class="etf-metric-label">资产管理规模 (AUM)</div>
                   <div class="etf-metric-value unavailable">数据暂未可用</div>
                 </div>
+                <div v-if="stateData.validation.etf_flow_14d_sum !== null && stateData.validation.etf_flow_14d_sum !== undefined" class="etf-metric-item">
+                  <div class="etf-metric-label">近14日净流入合计</div>
+                  <div class="etf-metric-value">
+                    <span class="etf-icon">{{ stateData.validation.etf_flow_14d_sum > 0 ? '📈' : stateData.validation.etf_flow_14d_sum < 0 ? '📉' : '➖' }}</span>
+                    <span :class="stateData.validation.etf_flow_14d_sum > 0 ? 'positive' : stateData.validation.etf_flow_14d_sum < 0 ? 'negative' : ''">
+                      <span class="etf-full-value">{{ stateData.validation.etf_flow_14d_sum >= 0 ? '+' : '-' }}${{ Math.abs(stateData.validation.etf_flow_14d_sum).toLocaleString('en-US', { maximumFractionDigits: 0 }) }}</span>
+                      <span class="etf-compact-value">({{ formatETFValue(stateData.validation.etf_flow_14d_sum) }})</span>
+                    </span>
+                  </div>
+                  <div class="etf-metric-desc">用于判断近期资金方向与 AUM 趋势</div>
+                </div>
+                <div v-else class="etf-metric-item">
+                  <div class="etf-metric-label">近14日净流入合计</div>
+                  <div class="etf-metric-value unavailable">数据暂未可用</div>
+                </div>
+                <div class="etf-metric-item">
+                  <div class="etf-metric-label">流入/流出速度</div>
+                  <div class="etf-metric-subrow">
+                    <span>近7日均值</span>
+                    <span v-if="stateData.validation.etf_flow_recent_avg !== null && stateData.validation.etf_flow_recent_avg !== undefined" :class="stateData.validation.etf_flow_recent_avg > 0 ? 'positive' : stateData.validation.etf_flow_recent_avg < 0 ? 'negative' : ''">
+                      {{ formatETFValue(stateData.validation.etf_flow_recent_avg) }}
+                    </span>
+                    <span v-else class="unavailable">—</span>
+                  </div>
+                  <div class="etf-metric-subrow">
+                    <span>前7日均值</span>
+                    <span v-if="stateData.validation.etf_flow_prev_avg !== null && stateData.validation.etf_flow_prev_avg !== undefined" :class="stateData.validation.etf_flow_prev_avg > 0 ? 'positive' : stateData.validation.etf_flow_prev_avg < 0 ? 'negative' : ''">
+                      {{ formatETFValue(stateData.validation.etf_flow_prev_avg) }}
+                    </span>
+                    <span v-else class="unavailable">—</span>
+                  </div>
+                  <div class="etf-metric-subrow">
+                    <span>流入趋势</span>
+                    <span :class="getTrendBadge(stateData.validation.etf_flow_trend).className">
+                      {{ getTrendBadge(stateData.validation.etf_flow_trend).icon }} {{ getTrendBadge(stateData.validation.etf_flow_trend).text }}
+                    </span>
+                  </div>
+                  <div class="etf-metric-subrow">
+                    <span>AUM 趋势</span>
+                    <span :class="getTrendBadge(stateData.validation.etf_aum_trend).className">
+                      {{ getTrendBadge(stateData.validation.etf_aum_trend).icon }} {{ getTrendBadge(stateData.validation.etf_aum_trend).text }}
+                    </span>
+                  </div>
+                  <div class="etf-metric-desc">
+                    近7日与前7日的均值对比，用于判断流入/流出速度是否减缓
+                  </div>
+                </div>
+                <div class="etf-metric-item">
+                  <div class="etf-metric-label">正流入占比</div>
+                  <div class="etf-metric-value">
+                    <span class="etf-icon">📊</span>
+                    <span>{{ formatRatioPercent(stateData.validation.etf_flow_pos_ratio, 0) }}</span>
+                  </div>
+                  <div class="etf-metric-desc">近周期净流入为正的天数占比</div>
+                </div>
+              </div>
+              <div class="etf-rule-note">
+                <strong>判定口径：</strong>
+                顺风 = 净流入为主且 AUM 趋势向上；逆风 = 净流出为主且 AUM 趋势向下；钝化 = 两者不一致或数据不足
               </div>
             </div>
             <div class="etf-info">
@@ -1505,6 +1626,11 @@ h1 {
   font-weight: 700;
 }
 
+.thermometer-ath {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
 .thermometer-info, .etf-info {
   font-size: 0.875rem;
   color: #94a3b8;
@@ -1512,57 +1638,57 @@ h1 {
 }
 
 .etf-metrics {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
   margin-top: 1rem;
 }
 
 .etf-metric-item {
   background-color: #0f172a;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 0.5rem;
   border: 1px solid #334155;
 }
 
 .etf-metric-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #64748b;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .etf-metric-value {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #f1f5f9;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
 .etf-full-value {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
 .etf-compact-value {
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   font-weight: 600;
   opacity: 0.8;
 }
 
 .etf-metric-value.unavailable {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #64748b;
   font-weight: 400;
 }
 
 .etf-icon {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
 }
 
 .etf-metric-value .positive {
@@ -1574,9 +1700,34 @@ h1 {
 }
 
 .etf-metric-desc {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #64748b;
-  line-height: 1.4;
+  line-height: 1.35;
+}
+
+.etf-metric-subrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #cbd5f5;
+  margin-bottom: 0.25rem;
+}
+
+.etf-metric-subrow .unavailable {
+  color: #64748b;
+}
+
+.etf-metric-subrow .positive {
+  color: #10b981;
+}
+
+.etf-metric-subrow .negative {
+  color: #ef4444;
+}
+
+.etf-metric-subrow .neutral {
+  color: #94a3b8;
 }
 
 .etf-info-text {
@@ -1586,6 +1737,13 @@ h1 {
 
 .etf-info-text strong {
   color: #f1f5f9;
+}
+
+.etf-rule-note {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
 }
 
 .thermometer-info ul {

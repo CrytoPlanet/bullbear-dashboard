@@ -14,9 +14,16 @@ export interface ApiResponse {
 export interface ValidationLayer {
     risk_thermometer: string;
     ath_drawdown: number;
+    ath_price?: number | null;
     etf_accelerator: string;
     etf_net_flow: number | null;
     etf_aum: number | null;
+    etf_flow_14d_sum?: number | null;
+    etf_flow_pos_ratio?: number | null;
+    etf_flow_recent_avg?: number | null;
+    etf_flow_prev_avg?: number | null;
+    etf_flow_trend?: 'up' | 'down' | 'flat' | null;
+    etf_aum_trend?: 'up' | 'down' | 'flat' | null;
 }
 
 export interface StateResult {

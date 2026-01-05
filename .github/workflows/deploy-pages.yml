@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - 'feat/**'  # 也支持 feat 分支
+  workflow_run:
+    workflows: ["获取市场数据"]
+    types:
+      - completed
   workflow_dispatch: # 允许手动触发
 
 permissions:
@@ -18,11 +22,14 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v2
@@ -74,4 +81,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
