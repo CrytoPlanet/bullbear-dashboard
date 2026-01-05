@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { type DataResult, DATA_LABELS, type StateApiResponse, STATE_STYLES, RISK_COLORS } from './types';
+import TradingViewChart from './components/TradingViewChart.vue';
 
 // 检测是否为开发环境（localhost）
 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -685,6 +686,9 @@ onMounted(() => {
     </header>
 
     <main>
+      <div class="chart-section" v-if="!initialLoad || stateData">
+        <TradingViewChart />
+      </div>
       <div v-if="error" class="error">
         {{ error }}
       </div>
