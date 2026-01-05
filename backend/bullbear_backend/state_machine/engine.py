@@ -72,7 +72,7 @@ class StateMachineEngine:
         )
 
         # Determine funding behavior (needs historical stablecoin data)
-        funding, stablecoin_change, stablecoin_ratio_change = self._determine_funding(
+        funding, stablecoin_change, stablecoin_ratio_change, stablecoin_ratio_gap = self._determine_funding(
             stablecoin_market_cap, total_market_cap, historical_data, historical_market_data
         )
         
@@ -160,6 +160,7 @@ class StateMachineEngine:
                 "stablecoin_ratio": stablecoin_ratio,
                 "stablecoin_change": stablecoin_change,
                 "stablecoin_ratio_change": stablecoin_ratio_change,
+                "stablecoin_ratio_gap": stablecoin_ratio_gap,
                 "stablecoin_slope": stablecoin_slope,
                 "total_slope": total_slope,
                 "ath_drawdown": ath_drawdown,
@@ -254,7 +255,7 @@ class StateMachineEngine:
         Formula:
         1. Convert values to log scale: log_values = [log(v) for v in values]
         2. Apply linear regression: slope = Σ((x[i] - x_mean) * (log_y[i] - log_y_mean)) / Σ((x[i] - x_mean)²)
-        3. Convert to percentage: slope_percent = slope * 100
+        3. Convert to percentage: slope_percent = (exp(slope) - 1) * 100
         
         The slope represents the daily percentage change rate in log space,
         which is approximately the percentage change rate in linear space.
@@ -305,11 +306,8 @@ class StateMachineEngine:
         # Slope in log space (this is the daily rate of change in log space)
         slope_log = numerator / denominator
         
-        # Convert to percentage change rate per day
-        # In log space, the slope represents the continuous growth rate
-        # For small changes, this approximates the percentage change rate
-        # We multiply by 100 to get percentage
-        slope_percent = slope_log * 100
+        # Convert continuous log growth rate to simple daily percent change
+        slope_percent = (math.exp(slope_log) - 1) * 100
         
         return slope_percent
 
@@ -387,7 +385,7 @@ class StateMachineEngine:
         total_market_cap: float,
         historical_data: dict[str, list[float]],
         historical_market_data: dict[str, list[tuple[int, float]]] | None = None,
-    ) -> tuple[FundingBehavior, float, float]:
+    ) -> tuple[FundingBehavior, float, float | None, float | None]:
         """Determine funding behavior from stablecoin dynamics.
         
         Based on videologic.md, uses four combination patterns:
@@ -403,9 +401,12 @@ class StateMachineEngine:
             historical_market_data: Historical market cap data from external API (optional)
 
         Returns:
-            Tuple of (funding_behavior, stablecoin_change_percentage, stablecoin_ratio_change)
+            Tuple of (funding_behavior, stablecoin_change_percentage, stablecoin_ratio_change, stablecoin_ratio_gap)
         """
         stablecoin_ratio = (stablecoin_market_cap / total_market_cap) * 100
+
+        # Distance from threshold (used for fallback visibility)
+        stablecoin_ratio_gap = None
         
         # Determine trends using historical data
         # Need at least 7 days of history for reliable trend detection
@@ -466,18 +467,22 @@ class StateMachineEngine:
                 first_ratio = (first_stablecoin / first_total * 100) if first_total > 0 else stablecoin_ratio
                 stablecoin_change = stablecoin_market_cap - first_stablecoin
                 stablecoin_ratio_change = stablecoin_ratio - first_ratio
+                stablecoin_ratio_gap = None
             elif self._historical_stablecoin_caps:
                 stablecoin_change = stablecoin_market_cap - self._historical_stablecoin_caps[0]
                 stablecoin_ratio_change = stablecoin_ratio - ((self._historical_stablecoin_caps[0] / self._historical_total_caps[0] * 100) if (self._historical_stablecoin_caps and self._historical_total_caps and self._historical_total_caps[0] > 0) else stablecoin_ratio)
+                stablecoin_ratio_gap = None
             else:
                 stablecoin_change = 0.0
-                stablecoin_ratio_change = 0.0
+                stablecoin_ratio_change = None
+                stablecoin_ratio_gap = None
             
         else:
             # Fallback: use ratio-based approach when insufficient history
             # Historical threshold: ~8% is typical
             threshold = 8.0
-            stablecoin_ratio_change = stablecoin_ratio - threshold
+            stablecoin_ratio_change = None
+            stablecoin_ratio_gap = stablecoin_ratio - threshold
             stablecoin_change = stablecoin_market_cap
             
             # 资金进攻：稳定币占比 < 8%（资金流入风险资产）
@@ -489,7 +494,7 @@ class StateMachineEngine:
                 funding = FundingBehavior.DEFENSIVE
                 logger.info(f"资金姿态: 防守 (稳定币占比 {stablecoin_ratio:.2f}% >= 阈值 {threshold}%)")
         
-        return (funding, stablecoin_change, stablecoin_ratio_change)
+        return (funding, stablecoin_change, stablecoin_ratio_change, stablecoin_ratio_gap)
 
     def _calculate_risk_thermometer(
         self, btc_price: float, historical_data: dict[str, list[float]]
@@ -570,7 +575,7 @@ class StateMachineEngine:
             # Get historical data to determine trend (2-4 weeks = 14-28 days, use 30 days)
             history = farside_provider.get_etf_net_flow_history(days=30)
             
-            if not history or len(history) < 7:
+            if not history or len(history) < 14:
                 # If we don't have enough history, fall back to single-day logic
                 # Threshold for "钝化": within ±$10M
                 if abs(net_flow) < 10_000_000:
@@ -590,6 +595,17 @@ class StateMachineEngine:
             
             # Calculate average flow over the period
             avg_flow = sum(day['net_flow'] for day in history) / total_days
+
+            # Approximate AUM trend using recent cumulative net flow
+            recent_window = 14
+            recent_history = history[-recent_window:] if total_days >= recent_window else history
+            recent_flow_sum = sum(day['net_flow'] for day in recent_history)
+            if recent_flow_sum > 0:
+                aum_trend = "up"
+            elif recent_flow_sum < 0:
+                aum_trend = "down"
+            else:
+                aum_trend = "flat"
             
             # For "持续流入/流出", we need at least 14 days (2 weeks) of consistent direction
             # And the majority of days should be in that direction
@@ -600,7 +616,7 @@ class StateMachineEngine:
             if positive_days >= min_consistent_days and positive_days / total_days >= consistency_threshold:
                 # Additional check: recent flows should be positive
                 recent_flows = [day['net_flow'] for day in history[-7:]]  # Last week
-                if all(flow > 0 for flow in recent_flows) or sum(recent_flows) > 0:
+                if (all(flow > 0 for flow in recent_flows) or sum(recent_flows) > 0) and aum_trend == "up":
                     status = "顺风"
                     logger.info(f"ETF 顺风: {positive_days}/{total_days} days positive, avg flow: ${avg_flow:,.0f}")
                     return (status, net_flow, aum)
@@ -609,7 +625,7 @@ class StateMachineEngine:
             if negative_days >= min_consistent_days and negative_days / total_days >= consistency_threshold:
                 # Additional check: recent flows should be negative
                 recent_flows = [day['net_flow'] for day in history[-7:]]  # Last week
-                if all(flow < 0 for flow in recent_flows) or sum(recent_flows) < 0:
+                if (all(flow < 0 for flow in recent_flows) or sum(recent_flows) < 0) and aum_trend == "down":
                     status = "逆风"
                     logger.info(f"ETF 逆风: {negative_days}/{total_days} days negative, avg flow: ${avg_flow:,.0f}")
                     return (status, net_flow, aum)
@@ -636,11 +652,13 @@ class StateMachineEngine:
                 status = "钝化"
                 logger.info(f"ETF 钝化: average flow near zero (${avg_flow:,.0f})")
             else:
-                # Mixed signals - use current day's flow as tiebreaker
-                if net_flow > 0:
+                # Mixed signals - use flow direction with AUM trend as tiebreaker
+                if net_flow > 0 and aum_trend == "up":
                     status = "顺风"
-                else:
+                elif net_flow < 0 and aum_trend == "down":
                     status = "逆风"
+                else:
+                    status = "钝化"
                 logger.info(f"ETF mixed signals, using current day: {status}")
             
             return (status, net_flow, aum)
@@ -681,7 +699,7 @@ class StateMachineEngine:
         ma200: float,
         ma50_slope: float,
         ma200_slope: float,
-        stablecoin_ratio_change: float,
+        stablecoin_ratio_change: float | None,
     ) -> float:
         """Calculate confidence score (0.0 to 1.0).
 
@@ -700,8 +718,11 @@ class StateMachineEngine:
         trend_confidence = min(1.0, (ma_arrangement_clear * 5 + slope_confidence * 0.5))
         
         # Funding confidence: based on distance from threshold
-        funding_strength = abs(stablecoin_ratio_change) / 8.0  # Normalized to threshold
-        funding_confidence = min(1.0, funding_strength)
+        if stablecoin_ratio_change is None:
+            funding_confidence = 0.2
+        else:
+            funding_strength = abs(stablecoin_ratio_change) / 8.0  # Normalized to threshold
+            funding_confidence = min(1.0, funding_strength)
         
         # Average confidence
         return min(1.0, (trend_confidence + funding_confidence) / 2.0)
