@@ -273,11 +273,29 @@ const getTrendConclusion = () => {
     };
   }
   
-  // 无法确定：条件不满足
+  // 降级判断：斜率条件不满足时，按价格相对 MA200 处理
+  if (btcPrice > ma200) {
+    return {
+      type: 'bullish',
+      name: '趋势多（降级）',
+      description: '价格在 MA200 上方，但 MA200 走弱（斜率 < 0）',
+      color: '#f59e0b',
+      icon: '⚠️'
+    };
+  }
+  if (btcPrice < ma200) {
+    return {
+      type: 'bearish',
+      name: '趋势空（降级）',
+      description: '价格在 MA200 下方，但 MA200 走平或向上（斜率 >= 0）',
+      color: '#f59e0b',
+      icon: '⚠️'
+    };
+  }
   return {
     type: 'uncertain',
     name: '无法确定',
-    description: '价格与MA200关系或MA200斜率条件不满足，使用降级判断',
+    description: '价格与 MA200 重合或数据不足，趋势无法判定',
     color: '#6b7280',
     icon: '❓'
   };
@@ -310,8 +328,8 @@ const getFundingPatternInfo = () => {
   
   if (stablecoinSlope === undefined || totalSlope === undefined) return null;
   
-  const stablecoinTrend = stablecoinSlope > 0 ? '↑' : '↓';
-  const totalTrend = totalSlope > 0 ? '↑' : '↓';
+  const stablecoinTrend = stablecoinSlope > 0 ? '↑' : stablecoinSlope < 0 ? '↓' : '→';
+  const totalTrend = totalSlope > 0 ? '↑' : totalSlope < 0 ? '↓' : '→';
   
   // 根据后端逻辑匹配模式
   if (stablecoinTrend === '↑' && totalTrend === '↑') {
@@ -332,13 +350,19 @@ const getFundingPatternInfo = () => {
       name: '去风险防守',
       funding: '资金防守'
     };
-  } else { // stablecoinTrend === '↓' && totalTrend === '↓'
+  } else if (stablecoinTrend === '↓' && totalTrend === '↓') {
     return {
       pattern: 'Stable ↓ + Total ↓',
       name: '深度防守/撤退',
       funding: '资金防守'
     };
   }
+
+  return {
+    pattern: '数据不足',
+    name: '历史不足/走平',
+    funding: '无法判断'
+  };
 };
 
 // 获取资金姿态组合模式
@@ -448,7 +472,7 @@ const getStateTransitionSignals = (): Transition[] => {
       // 需要：稳定币斜率 < 0 或 总市值斜率 > 0（根据组合模式）
       const fundingSignal = stablecoinSlope !== undefined && totalSlope !== undefined
         ? (stablecoinSlope < 0 && totalSlope > 0) || (stablecoinSlope > 0 && totalSlope > 0)
-        : stablecoinRatioChange !== undefined ? stablecoinRatioChange < 0 : false;
+        : stablecoinRatioChange !== undefined && stablecoinRatioChange !== null ? stablecoinRatioChange < 0 : false;
       signals.push({
         name: '资金转进攻',
         description: '稳定币市值下降或总市值上升，资金流入风险资产',
@@ -461,7 +485,7 @@ const getStateTransitionSignals = (): Transition[] => {
       // 需要：稳定币斜率 > 0 或 总市值斜率 < 0（根据组合模式）
       const fundingSignal = stablecoinSlope !== undefined && totalSlope !== undefined
         ? (stablecoinSlope > 0 && totalSlope < 0) || (stablecoinSlope < 0 && totalSlope < 0)
-        : stablecoinRatioChange !== undefined ? stablecoinRatioChange > 0 : false;
+        : stablecoinRatioChange !== undefined && stablecoinRatioChange !== null ? stablecoinRatioChange > 0 : false;
       signals.push({
         name: '资金转防守',
         description: '稳定币市值上升或总市值下降，资金避险',
@@ -972,7 +996,11 @@ onMounted(() => {
                   <span>{{ stateData.metadata.stablecoin_ratio.toFixed(2) }}%</span>
                 </div>
                 <div class="change-desc">
-                  <div v-if="stateData.metadata?.stablecoin_ratio_change !== undefined" style="margin-bottom: 0.5rem;">
+                  <div v-if="stateData.metadata?.stablecoin_ratio_gap !== undefined && stateData.metadata?.stablecoin_ratio_gap !== null" style="margin-bottom: 0.5rem;">
+                    <span class="ratio-change-indicator">⚖️</span>
+                    <span>距离阈值: {{ stateData.metadata.stablecoin_ratio_gap > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_gap.toFixed(2) }}%</span>
+                  </div>
+                  <div v-if="stateData.metadata?.stablecoin_ratio_change !== undefined && stateData.metadata?.stablecoin_ratio_change !== null" style="margin-bottom: 0.5rem;">
                     <span class="ratio-change-indicator">{{ stateData.metadata.stablecoin_ratio_change < 0 ? '⬇️' : stateData.metadata.stablecoin_ratio_change > 0 ? '⬆️' : '➡️' }}</span>
                     <span :class="stateData.metadata.stablecoin_ratio_change < 0 ? 'positive' : stateData.metadata.stablecoin_ratio_change > 0 ? 'negative' : ''">
                       变化: {{ stateData.metadata.stablecoin_ratio_change > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_change.toFixed(2) }}%
