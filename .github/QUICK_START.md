@@ -6,7 +6,7 @@
 
 ### 1. GitHub Actions 工作流
 
-- **`.github/workflows/fetch-data.yml`**: 每12小时自动获取市场数据
+- **`.github/workflows/fetch-data.yml`**: 每6小时自动获取市场数据
 - **`.github/workflows/deploy-pages.yml`**: 自动构建并部署前端到 GitHub Pages
 
 ### 2. 数据获取脚本
@@ -58,7 +58,7 @@ git push origin main
      - `TAAPI_SECRET`
 
 3. **数据更新**：
-   - 数据每12小时自动更新一次
+   - 数据每6小时自动更新一次
    - 数据文件保存在 `frontend/public/data/` 目录
    - 前端会自动使用最新的数据文件
 

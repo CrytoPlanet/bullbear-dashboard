@@ -2,11 +2,12 @@ name: 获取市场数据
 
 on:
   schedule:
-    # 每12小时运行一次 (UTC时间 00:00 和 12:00)
-    - cron: '0 */12 * * *'
+    # 每6小时运行一次 (UTC时间 00:00 / 06:00 / 12:00 / 18:00)
+    - cron: '0 */6 * * *'
   push:
     branches:
-      - main  # 只在 main 分支推送时触发
+      - main
+      - 'feat/**'
   workflow_dispatch: # 允许手动触发
 
 jobs:
@@ -41,4 +42,3 @@ jobs:
           git config --local user.name "GitHub Action"
           git add frontend/public/data/*.json
           git diff --staged --quiet || (git commit -m "自动更新市场数据 [skip ci]" && git push)
-

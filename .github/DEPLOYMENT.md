@@ -4,7 +4,7 @@
 
 ## 📋 功能说明
 
-1. **自动获取数据**：每12小时自动获取市场数据并保存为 JSON 文件
+1. **自动获取数据**：每6小时自动获取市场数据并保存为 JSON 文件
 2. **自动部署前端**：当代码推送到 main 分支时，自动构建并部署到 GitHub Pages
 
 ## 🔧 配置步骤
@@ -39,7 +39,8 @@ const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'your-repo-name
 ### fetch-data.yml
 
 - **触发时机**：
-  - 每12小时自动运行（UTC 00:00 和 12:00）
+  - 每6小时自动运行（UTC 00:00 / 06:00 / 12:00 / 18:00）
+  - Push to `main` or `feat/**` triggers the workflow (useful for feat testing)
   - 可以手动触发（Actions > fetch-data.yml > Run workflow）
   
 - **功能**：
@@ -65,7 +66,7 @@ const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'your-repo-name
    - 访问 `https://your-username.github.io/bullbear-dashboard/` 查看页面
 
 2. **数据更新**：
-   - 数据获取工作流每12小时自动运行
+   - 数据获取工作流每6小时自动运行
    - 数据文件会自动更新并提交到仓库
    - 前端会自动使用最新的数据文件
 
