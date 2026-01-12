@@ -20,8 +20,8 @@ const DATA_TYPES = ['btc_price', 'total_market_cap', 'stablecoin_market_cap', 'm
 const fetchDataFromStatic = async () => {
   try {
     // 使用相对路径，兼容 GitHub Pages 部署
-    const basePath = import.meta.env.BASE_URL || '/';
-    const response = await fetch(`${basePath}data/all_data.json`);
+    const basePath = import.meta.env.BASE_URL || 'https://github.com/CrytoPlanet/bullbear-dashboard/releases/download/data';
+    const response = await fetch(`${basePath}/all_data.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch static data: ${response.status}`);
     }
@@ -84,7 +84,7 @@ const fetchStateFromStatic = async () => {
   try {
     // 使用相对路径，兼容 GitHub Pages 部署
     const basePath = import.meta.env.BASE_URL || '/';
-    const response = await fetch(`${basePath}data/state.json`);
+    const response = await fetch(`${basePath}/state.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch static state: ${response.status}`);
     }

@@ -76,7 +76,7 @@ const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'your-repo-name
 
 ## 📝 数据文件结构
 
-数据文件保存在 `frontend/public/data/` 目录：
+数据文件会使用release发布：
 
 - `all_data.json`: 包含所有市场数据
 - `state.json`: 包含市场状态机结果
