@@ -13,6 +13,8 @@ on:
 jobs:
   fetch-data:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: 检出代码
@@ -36,9 +38,13 @@ jobs:
           cd backend
           python scripts/fetch_and_save_data.py
 
-      - name: 提交数据文件
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add frontend/public/data/*.json
-          git diff --staged --quiet || (git commit -m "自动更新市场数据 [skip ci]" && git push)
+      - name: Release data
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            frontend/public/data/*.json
+          tag_name: data
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
