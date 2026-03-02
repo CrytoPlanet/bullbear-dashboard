@@ -38,6 +38,14 @@ jobs:
           cd backend
           python scripts/fetch_and_save_data.py
 
+      - name: Commit data files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/
+          git diff --staged --quiet || git commit -m "自动更新市场数据 [skip ci]"
+          git push
+
       - name: Release data
         uses: softprops/action-gh-release@v2
         with:

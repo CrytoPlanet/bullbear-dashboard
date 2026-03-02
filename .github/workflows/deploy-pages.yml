@@ -51,7 +51,6 @@ jobs:
         env:
           NODE_ENV: production
           GITHUB_REPOSITORY: ${{ github.repository }}
-          VITE_DATA_BASE_URL: https://github.com/CrytoPlanet/bullbear-dashboard/releases/download/data
         run: |
           cd frontend
           # 先尝试正常构建，如果类型检查失败则跳过
