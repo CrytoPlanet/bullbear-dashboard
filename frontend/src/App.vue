@@ -682,9 +682,6 @@ onMounted(() => {
     </header>
 
     <main>
-      <div class="chart-section" v-if="!initialLoad || stateData">
-        <TradingViewChart />
-      </div>
       <div v-if="error" class="error">
         {{ error }}
       </div>
@@ -1360,6 +1357,10 @@ onMounted(() => {
           </div>
           </template>
         </div>
+      </div>
+
+      <div class="chart-section" v-if="!initialLoad || stateData">
+        <TradingViewChart />
       </div>
     </main>
   </div>
