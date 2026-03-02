@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { type DataResult, DATA_LABELS, type StateApiResponse, STATE_STYLES, RISK_COLORS } from './types';
+import { ref, onMounted, computed } from 'vue';
+import { type DataResult, DATA_LABELS, type StateApiResponse, STATE_STYLES, RISK_COLORS, QUADRANT_MAP } from './types';
 import TradingViewChart from './components/TradingViewChart.vue';
 
 // 检测是否为开发环境（localhost）
@@ -666,6 +666,11 @@ const loadAllData = async () => {
   }
 };
 
+/** 从 stateData.state 派生四象限显示信息，UI 唯一消费入口 */
+const currentQuadrant = computed(() =>
+  stateData.value?.ok ? (QUADRANT_MAP[stateData.value.state] ?? null) : null
+);
+
 onMounted(() => {
   loadAllData();
 });
@@ -679,6 +684,10 @@ onMounted(() => {
       <button @click="loadAllData" :disabled="loading" class="refresh-btn">
         {{ loading ? '加载中...' : '🔄 刷新数据' }}
       </button>
+      <div v-if="currentQuadrant" class="status-summary">
+        <p class="status-primary">当前状态：{{ currentQuadrant.en }}（{{ currentQuadrant.cn }}）</p>
+        <p class="status-secondary">{{ currentQuadrant.trend }}｜{{ currentQuadrant.flow }}</p>
+      </div>
     </header>
 
     <main>
@@ -1417,6 +1426,25 @@ h1 {
 .refresh-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.status-summary {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.status-primary {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.status-secondary {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #cbd5e1;
+  opacity: 0.7;
 }
 
 /* 状态机展示 */
