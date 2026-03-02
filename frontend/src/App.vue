@@ -19,8 +19,7 @@ const DATA_TYPES = ['btc_price', 'total_market_cap', 'stablecoin_market_cap', 'm
 // 从静态文件读取数据
 const fetchDataFromStatic = async () => {
   try {
-    const dataBaseUrl = import.meta.env.VITE_DATA_BASE_URL;
-    const response = await fetch(`${dataBaseUrl}/all_data.json`);
+    const response = await fetch(`${import.meta.env.BASE_URL}data/all_data.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch static data: ${response.status}`);
     }
@@ -81,8 +80,7 @@ const fetchData = async () => {
 // 从静态文件读取状态
 const fetchStateFromStatic = async () => {
   try {
-    const dataBaseUrl = import.meta.env.VITE_DATA_BASE_URL;
-    const response = await fetch(`${dataBaseUrl}/state.json`);
+    const response = await fetch(`${import.meta.env.BASE_URL}data/state.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch static state: ${response.status}`);
     }
