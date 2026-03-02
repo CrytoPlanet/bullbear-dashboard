@@ -69,3 +69,18 @@ export const RISK_COLORS: Record<string, string> = {
     'MEDIUM': '🟡',
     'LOW': '🟢',
 };
+
+export interface QuadrantInfo {
+    cn: string
+    en: string
+    trend: '趋势偏多' | '趋势偏空'
+    flow: '资金进攻' | '资金防守'
+}
+
+/** 四象限状态映射表：state → 显示信息。UI 层唯一的文案来源。 */
+export const QUADRANT_MAP: Record<string, QuadrantInfo> = {
+    '牛市进攻': { cn: '牛市进攻', en: 'Bull Offensive', trend: '趋势偏多', flow: '资金进攻' },
+    '牛市修复': { cn: '牛市修复', en: 'Bull Recovery',  trend: '趋势偏多', flow: '资金防守' },
+    '熊市反弹': { cn: '熊市反弹', en: 'Bear Bounce',    trend: '趋势偏空', flow: '资金进攻' },
+    '熊市消化': { cn: '熊市消化', en: 'Bear Digest',    trend: '趋势偏空', flow: '资金防守' },
+};
