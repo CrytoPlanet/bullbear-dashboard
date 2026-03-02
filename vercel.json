@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd frontend && pnpm install --frozen-lockfile && pnpm run build-only",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "echo 'dependencies installed in buildCommand'"
+}
