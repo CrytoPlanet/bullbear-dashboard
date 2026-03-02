@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "state": "熊市消化",
+  "trend": "趋势空",
+  "funding": "资金防守",
+  "risk_level": "LOW",
+  "confidence": 0.697825710326381,
+  "validation": {
+    "risk_thermometer": "高烧威胁",
+    "ath_drawdown": 46.69540006535369,
+    "ath_price": 124797.86,
+    "etf_accelerator": "钝化",
+    "etf_net_flow": -27500000.0,
+    "etf_aum": 103432957328.0,
+    "etf_flow_14d_sum": 111499999.99999999,
+    "etf_flow_pos_ratio": 0.36666666666666664,
+    "etf_flow_recent_avg": 101385714.28571428,
+    "etf_flow_prev_avg": -85457142.85714285,
+    "etf_flow_trend": "up",
+    "etf_aum_trend": "up"
+  },
+  "metadata": {
+    "btc_price": 66523.0,
+    "ma50": 77279.2158,
+    "ma200": 96872.886,
+    "ma50_slope": -0.6386309188530004,
+    "ma200_slope": -0.2657119152233989,
+    "total_market_cap": 2368498504231.8945,
+    "stablecoin_market_cap": 264447864179.6148,
+    "stablecoin_ratio": 11.165211365222095,
+    "stablecoin_change": -15327335031.655273,
+    "stablecoin_ratio_change": 3.1652113652220955,
+    "stablecoin_ratio_gap": null,
+    "stablecoin_slope": -0.06792043287681127,
+    "total_slope": -0.06792043287683347,
+    "ath_drawdown": 46.69540006535369
+  }
+}
