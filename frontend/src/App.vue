@@ -16,12 +16,11 @@ const error = ref<string | null>(null);
 
 const DATA_TYPES = ['btc_price', 'total_market_cap', 'stablecoin_market_cap', 'ma50', 'ma200', 'etf_net_flow', 'etf_aum'];
 
-// 从静态文件读取数据（用于 GitHub Pages）
+// 从静态文件读取数据
 const fetchDataFromStatic = async () => {
   try {
-    // 使用相对路径，兼容 GitHub Pages 部署
-    const basePath = import.meta.env.BASE_URL || 'https://github.com/CrytoPlanet/bullbear-dashboard/releases/download/data';
-    const response = await fetch(`${basePath}/all_data.json`);
+    const dataBaseUrl = import.meta.env.VITE_DATA_BASE_URL;
+    const response = await fetch(`${dataBaseUrl}/all_data.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch static data: ${response.status}`);
     }
@@ -82,9 +81,8 @@ const fetchData = async () => {
 // 从静态文件读取状态
 const fetchStateFromStatic = async () => {
   try {
-    // 使用相对路径，兼容 GitHub Pages 部署
-    const basePath = import.meta.env.BASE_URL || '/';
-    const response = await fetch(`${basePath}/state.json`);
+    const dataBaseUrl = import.meta.env.VITE_DATA_BASE_URL;
+    const response = await fetch(`${dataBaseUrl}/state.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch static state: ${response.status}`);
     }
