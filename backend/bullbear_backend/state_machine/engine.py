@@ -736,7 +736,17 @@ class StateMachineEngine:
                 if first_avg < 0 and second_avg > first_avg and abs(second_avg) < abs(first_avg) * 0.5:
                     status = "钝化"
                     logger.info(f"ETF 钝化: outflow slowing from ${first_avg:,.0f} to ${second_avg:,.0f}")
-                    return (status, net_flow, aum)
+                    return (
+                        status,
+                        net_flow,
+                        aum,
+                        etf_flow_14d_sum,
+                        etf_flow_pos_ratio,
+                        etf_flow_recent_avg,
+                        etf_flow_prev_avg,
+                        etf_flow_trend,
+                        etf_aum_trend,
+                    )
             
             # If near zero or mixed signals, consider it 钝化
             if abs(avg_flow) < 10_000_000:  # Less than $10M average
