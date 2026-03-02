@@ -1435,7 +1435,7 @@ h1 {
 
 .status-primary {
   margin: 0;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
   color: #f1f5f9;
 }
