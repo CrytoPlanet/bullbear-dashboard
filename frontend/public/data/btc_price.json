@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data_type": "btc_price",
-  "value": 71576.0,
+  "value": 71299.0,
   "provider": "coingecko",
   "metadata": {
     "currency": "USD"
