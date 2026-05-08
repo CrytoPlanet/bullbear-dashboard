@@ -32,7 +32,9 @@ if (typeof document !== 'undefined') {
 }
 
 export function setLocale(loc: AppLocale): void {
-  i18n.global.locale.value = loc;
+  // legacy: false makes i18n.global a Composer whose locale is a WritableComputedRef.
+  // The createI18n generic doesn't narrow this for us, so cast explicitly.
+  (i18n.global.locale as unknown as { value: AppLocale }).value = loc;
   try {
     localStorage.setItem(STORAGE_KEY, loc);
   } catch {
