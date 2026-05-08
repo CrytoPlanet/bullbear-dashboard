@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { type DataResult, DATA_LABELS, type StateApiResponse, STATE_STYLES, RISK_COLORS, QUADRANT_MAP } from './types';
+import { type DataResult, type StateApiResponse, STATE_STYLES, RISK_COLORS } from './types';
 import TradingViewChart from './components/TradingViewChart.vue';
 import { useI18n } from 'vue-i18n';
 import { setLocale, type AppLocale } from './locales';
@@ -10,6 +10,38 @@ const { t } = useI18n();
 function onSetLocale(loc: AppLocale) {
   setLocale(loc);
 }
+
+const STATE_KEYS: Record<string, string> = {
+  '牛市进攻': 'bullOffensive',
+  '牛市修复': 'bullRecovery',
+  '熊市反弹': 'bearBounce',
+  '熊市消化': 'bearDigest',
+};
+
+const TREND_KEYS: Record<string, string> = {
+  '趋势多': 'bull',
+  '趋势空': 'bear',
+};
+
+const FUNDING_KEYS: Record<string, string> = {
+  '资金进攻': 'offensive',
+  '资金防守': 'defensive',
+  '无法判断': 'unknown',
+};
+
+const THERMOMETER_KEYS: Record<string, string> = {
+  '正常体温': 'normal',
+  '低/中烧': 'midFever',
+  '高烧威胁': 'highFever',
+  '生命体征极差': 'critical',
+};
+
+const ETF_ACCEL_KEYS: Record<string, string> = {
+  '顺风': 'tailwind',
+  '逆风': 'headwind',
+  '钝化': 'blunted',
+  '未知': 'unknown',
+};
 
 // 检测是否为开发环境（localhost）
 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -80,7 +112,7 @@ const fetchData = async () => {
     // 生产环境优先使用静态文件
     const staticSuccess = await fetchDataFromStatic();
     if (!staticSuccess) {
-      error.value = '无法加载数据，请稍后重试';
+      error.value = t('errors.dataLoadFailed');
     }
   }
 };
@@ -135,14 +167,14 @@ const fetchState = async () => {
       const staticSuccess = await fetchStateFromStatic();
       if (!staticSuccess) {
         if (!error.value) {
-          error.value = '无法加载状态数据，请稍后重试';
+          error.value = t('errors.stateLoadFailed');
         }
       }
     }
   } catch (e: any) {
     console.error('Failed to fetch state:', e);
     if (!error.value) {
-      error.value = `状态获取失败: ${e.message || '未知错误'}`;
+      error.value = `${t('errors.stateFetchPrefix')}: ${e.message || t('errors.unknownError')}`;
     }
   } finally {
     stateLoading.value = false;
@@ -175,10 +207,10 @@ const formatRatioPercent = (value: number | null | undefined, digits = 1): strin
 };
 
 const getTrendBadge = (trend: string | null | undefined) => {
-  if (trend === 'up') return { text: '向上', className: 'positive', icon: '📈' };
-  if (trend === 'down') return { text: '向下', className: 'negative', icon: '📉' };
-  if (trend === 'flat') return { text: '走平', className: 'neutral', icon: '➖' };
-  return { text: '未知', className: 'neutral', icon: '—' };
+  if (trend === 'up')   return { text: t('trendBadge.up'),      className: 'positive', icon: '📈' };
+  if (trend === 'down') return { text: t('trendBadge.down'),    className: 'negative', icon: '📉' };
+  if (trend === 'flat') return { text: t('trendBadge.flat'),    className: 'neutral',  icon: '➖' };
+  return { text: t('trendBadge.unknown'), className: 'neutral', icon: '—' };
 };
 
 const formatValue = (value: number, type: string) => {
@@ -675,9 +707,17 @@ const loadAllData = async () => {
 };
 
 /** 从 stateData.state 派生四象限显示信息，UI 唯一消费入口 */
-const currentQuadrant = computed(() =>
-  stateData.value?.ok ? (QUADRANT_MAP[stateData.value.state] ?? null) : null
-);
+const currentQuadrant = computed(() => {
+  if (!stateData.value?.ok) return null;
+  const key = STATE_KEYS[stateData.value.state];
+  if (!key) return null;
+  return {
+    key,
+    name: t(`quadrant.${key}.name`),
+    trend: t(`quadrant.${key}.trendLabel`),
+    flow: t(`quadrant.${key}.flowLabel`),
+  };
+});
 
 onMounted(() => {
   loadAllData();
