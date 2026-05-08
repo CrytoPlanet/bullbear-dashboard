@@ -374,24 +374,22 @@ const trendConclusion = computed(() => {
   };
 });
 
-// 获取趋势质量判定
-const getTrendQuality = () => {
+// 趋势质量判定
+const trendQuality = computed(() => {
   if (!stateData.value?.metadata) return null;
   const btcPrice = stateData.value.metadata.btc_price;
   const ma50 = stateData.value.metadata.ma50;
   const ma200 = stateData.value.metadata.ma200;
   if (!btcPrice || !ma50 || !ma200) return null;
-  
-  // MA50 在 MA200 上方：说明中期趋势跟得上，市场有推动力
+
   if (ma50 > ma200) {
-    return { type: 'good', text: 'MA50 在 MA200 上方，说明中期趋势跟得上，市场有推动力' };
+    return { type: 'good' as const, text: t('trendQuality.good') };
   }
-  // 价格 < MA50 < MA200：典型的空头排列
   if (btcPrice < ma50 && ma50 < ma200) {
-    return { type: 'bad', text: '价格 < MA50 < MA200，典型的空头排列，反弹仅视为压力位修复而非反转' };
+    return { type: 'bad' as const, text: t('trendQuality.bad') };
   }
   return null;
-};
+});
 
 // 获取资金组合模式信息（基于斜率）
 const getFundingPatternInfo = () => {
@@ -1047,15 +1045,15 @@ onMounted(() => {
               </div>
             </div>
             
-            <div class="trend-card" v-if="getTrendQuality()">
+            <div class="trend-card" v-if="trendQuality">
               <div class="trend-card-header">
                 <span class="trend-icon">⭐</span>
                 <h3>趋势质量判定</h3>
               </div>
               <div class="trend-content">
-                <div class="trend-status" :class="getTrendQuality()?.type === 'good' ? 'positive' : 'negative'">
-                  <span class="trend-indicator">{{ getTrendQuality()?.type === 'good' ? '✅' : '⚠️' }}</span>
-                  <span class="trend-text">{{ getTrendQuality()?.text }}</span>
+                <div class="trend-status" :class="trendQuality?.type === 'good' ? 'positive' : 'negative'">
+                  <span class="trend-indicator">{{ trendQuality?.type === 'good' ? '✅' : '⚠️' }}</span>
+                  <span class="trend-text">{{ trendQuality?.text }}</span>
                 </div>
               </div>
             </div>
