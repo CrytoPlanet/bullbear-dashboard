@@ -1052,7 +1052,7 @@ onMounted(() => {
                 <div class="change-label">{{ $t('fundingChange.stablecoinTrendLabel') }}</div>
                 <div class="change-value" :class="stateData.metadata.stablecoin_slope > 0 ? 'positive' : 'negative'">
                   <span class="change-icon">{{ stateData.metadata.stablecoin_slope > 0 ? '📈' : '📉' }}</span>
-                  <span>{{ stateData.metadata.stablecoin_slope > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_slope.toFixed(3) }}%/天</span>
+                  <span>{{ stateData.metadata.stablecoin_slope > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_slope.toFixed(3) }}%{{ $t('trendCard.perDay') }}</span>
                 </div>
                 <div class="change-desc">
                   <strong>{{ stateData.metadata.stablecoin_slope > 0 ? $t('fundingChange.upMore') : $t('fundingChange.downLess') }}：</strong>
@@ -1063,7 +1063,7 @@ onMounted(() => {
                 <div class="change-label">{{ $t('fundingChange.totalTrendLabel') }}</div>
                 <div class="change-value" :class="stateData.metadata.total_slope > 0 ? 'positive' : 'negative'">
                   <span class="change-icon">{{ stateData.metadata.total_slope > 0 ? '📈' : '📉' }}</span>
-                  <span>{{ stateData.metadata.total_slope > 0 ? '+' : '' }}{{ stateData.metadata.total_slope.toFixed(3) }}%/天</span>
+                  <span>{{ stateData.metadata.total_slope > 0 ? '+' : '' }}{{ stateData.metadata.total_slope.toFixed(3) }}%{{ $t('trendCard.perDay') }}</span>
                 </div>
                 <div class="change-desc">
                   <strong>{{ stateData.metadata.total_slope > 0 ? $t('fundingChange.upMore') : $t('fundingChange.downLess') }}：</strong>
