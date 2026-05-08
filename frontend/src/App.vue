@@ -454,9 +454,9 @@ interface Transition {
   progress: number;
 }
 
-const getStateTransitionSignals = (): Transition[] => {
+const stateTransitionSignals = computed<Transition[]>(() => {
   if (!stateData.value?.metadata || !stateData.value?.state) return [];
-  
+
   const currentState = stateData.value.state;
   const btcPrice = stateData.value.metadata.btc_price;
   const ma50 = stateData.value.metadata.ma50;
@@ -468,167 +468,148 @@ const getStateTransitionSignals = (): Transition[] => {
   const totalSlope = stateData.value.metadata.total_slope;
   const etfAccelerator = stateData.value?.validation?.etf_accelerator;
   const etfAum = stateData.value?.validation?.etf_aum;
-  
+
   const transitions: Transition[] = [];
-  
-  // 定义所有可能的状态切换
+
   const allStates = ['牛市进攻', '牛市修复', '熊市反弹', '熊市消化'];
   const targetStates = allStates.filter(s => s !== currentState);
-  
+
+  const fmtPrice = (v: number | null | undefined) => v != null ? `$${v.toLocaleString()}` : '—';
+  const fmtSlope = (v: number | null | undefined) => v != null ? v.toFixed(2) : '—';
+  const fmtPct = (v: number | null | undefined) => v != null ? v.toFixed(2) : t('signals.risk.naValue');
+
   targetStates.forEach(targetState => {
-    const signals = [];
-    
-    // 判断目标状态需要的趋势和资金姿态
+    const signals: TransitionSignal[] = [];
+
     let targetTrend = '';
     let targetFunding = '';
-    
-    if (targetState === '牛市进攻') {
-      targetTrend = '趋势多';
-      targetFunding = '资金进攻';
-    } else if (targetState === '牛市修复') {
-      targetTrend = '趋势多';
-      targetFunding = '资金防守';
-    } else if (targetState === '熊市反弹') {
-      targetTrend = '趋势空';
-      targetFunding = '资金进攻';
-    } else if (targetState === '熊市消化') {
-      targetTrend = '趋势空';
-      targetFunding = '资金防守';
-    }
-    
+    if (targetState === '牛市进攻')      { targetTrend = '趋势多'; targetFunding = '资金进攻'; }
+    else if (targetState === '牛市修复') { targetTrend = '趋势多'; targetFunding = '资金防守'; }
+    else if (targetState === '熊市反弹') { targetTrend = '趋势空'; targetFunding = '资金进攻'; }
+    else if (targetState === '熊市消化') { targetTrend = '趋势空'; targetFunding = '资金防守'; }
+
     // 1. 趋势切换信号
     if (targetTrend === '趋势多') {
-      // 需要：价格 > MA200 且 MA200 斜率 >= 0
-      const trendSignal = btcPrice && ma200 && ma200Slope !== undefined 
+      const trendSignal = btcPrice && ma200 && ma200Slope !== undefined
         ? (btcPrice > ma200 && ma200Slope >= 0)
         : false;
       signals.push({
-        name: '趋势转多',
-        description: '价格在 MA200 上方，且 MA200 走平或向上',
+        name: t('signals.trendBull.name'),
+        description: t('signals.trendBull.description'),
         active: trendSignal,
         details: trendSignal
-          ? `价格($${btcPrice?.toLocaleString()}) > MA200($${ma200?.toLocaleString()})，MA200斜率(${ma200Slope?.toFixed(2)}%%) >= 0`
-          : `需要价格站上 MA200 且 MA200 走平或向上`
+          ? t('signals.trendBull.activeFmt', { price: fmtPrice(btcPrice), ma200: fmtPrice(ma200), slope: fmtSlope(ma200Slope) })
+          : t('signals.trendBull.pendingFmt'),
       });
     } else {
-      // 需要：价格 < MA200 且 MA200 斜率 < 0
       const trendSignal = btcPrice && ma200 && ma200Slope !== undefined
         ? (btcPrice < ma200 && ma200Slope < 0)
         : false;
       signals.push({
-        name: '趋势转空',
-        description: '价格在 MA200 下方，且 MA200 趋势向下',
+        name: t('signals.trendBear.name'),
+        description: t('signals.trendBear.description'),
         active: trendSignal,
         details: trendSignal
-          ? `价格($${btcPrice?.toLocaleString()}) < MA200($${ma200?.toLocaleString()})，MA200斜率(${ma200Slope?.toFixed(2)}%%) < 0`
-          : `需要价格跌破 MA200 且 MA200 趋势向下`
+          ? t('signals.trendBear.activeFmt', { price: fmtPrice(btcPrice), ma200: fmtPrice(ma200), slope: fmtSlope(ma200Slope) })
+          : t('signals.trendBear.pendingFmt'),
       });
     }
-    
+
     // 2. 资金姿态切换信号
     if (targetFunding === '资金进攻') {
-      // 需要：稳定币斜率 < 0 或 总市值斜率 > 0（根据组合模式）
       const fundingSignal = stablecoinSlope !== undefined && totalSlope !== undefined
         ? (stablecoinSlope < 0 && totalSlope > 0) || (stablecoinSlope > 0 && totalSlope > 0)
         : stablecoinRatioChange !== undefined && stablecoinRatioChange !== null ? stablecoinRatioChange < 0 : false;
       signals.push({
-        name: '资金转进攻',
-        description: '稳定币市值下降或总市值上升，资金流入风险资产',
+        name: t('signals.fundingOffensive.name'),
+        description: t('signals.fundingOffensive.description'),
         active: fundingSignal,
-        details: fundingSignal
-          ? `资金组合模式符合进攻状态`
-          : `需要稳定币市值下降或总市值上升`
+        details: fundingSignal ? t('signals.fundingOffensive.active') : t('signals.fundingOffensive.pending'),
       });
     } else {
-      // 需要：稳定币斜率 > 0 或 总市值斜率 < 0（根据组合模式）
       const fundingSignal = stablecoinSlope !== undefined && totalSlope !== undefined
         ? (stablecoinSlope > 0 && totalSlope < 0) || (stablecoinSlope < 0 && totalSlope < 0)
         : stablecoinRatioChange !== undefined && stablecoinRatioChange !== null ? stablecoinRatioChange > 0 : false;
       signals.push({
-        name: '资金转防守',
-        description: '稳定币市值上升或总市值下降，资金避险',
+        name: t('signals.fundingDefensive.name'),
+        description: t('signals.fundingDefensive.description'),
         active: fundingSignal,
-        details: fundingSignal
-          ? `资金组合模式符合防守状态`
-          : `需要稳定币市值上升或总市值下降`
+        details: fundingSignal ? t('signals.fundingDefensive.active') : t('signals.fundingDefensive.pending'),
       });
     }
-    
-    // 校验层信号（不计入需要条件，仅作为校验）
+
+    // 校验层信号（不计入需要条件）
     const validationSignals: TransitionSignal[] = [];
-    
-    // 检验层A：风险温度计信号
+
     const athDrawdown = stateData.value?.validation?.ath_drawdown;
     const riskThermometer = stateData.value?.validation?.risk_thermometer;
-    
+    const thermometerKey = riskThermometer ? THERMOMETER_KEYS[riskThermometer] : '';
+    const thermometerLabel = thermometerKey ? t(`thermometer.${thermometerKey}`) : (riskThermometer ?? '');
+
     let riskSignal = false;
     let riskDescription = '';
     let riskDetails = '';
-    
+
     if (targetState === '牛市进攻' || targetState === '牛市修复') {
-      // 牛市需要：正常体温或低/中烧（回撤率 < 35%）
       riskSignal = athDrawdown !== undefined && athDrawdown < 35;
-      riskDescription = '风险温度计：正常体温或低/中烧（回撤率 < 35%）';
+      riskDescription = t('signals.risk.bullDescription');
       riskDetails = riskSignal
-        ? `当前回撤率：${athDrawdown?.toFixed(2)}%（${riskThermometer}），符合牛市条件`
-        : `需要回撤率 < 35%（当前：${athDrawdown?.toFixed(2) || 'N/A'}%）`;
+        ? t('signals.risk.activeBullFmt', { drawdown: fmtPct(athDrawdown), thermometer: thermometerLabel })
+        : t('signals.risk.pendingBullFmt', { drawdown: fmtPct(athDrawdown) });
     } else if (targetState === '熊市反弹' || targetState === '熊市消化') {
-      // 熊市需要：高烧或生命体征极差（回撤率 >= 35%）
       riskSignal = athDrawdown !== undefined && athDrawdown >= 35;
-      riskDescription = '风险温度计：高烧威胁或生命体征极差（回撤率 >= 35%）';
+      riskDescription = t('signals.risk.bearDescription');
       riskDetails = riskSignal
-        ? `当前回撤率：${athDrawdown?.toFixed(2)}%（${riskThermometer}），符合熊市条件`
-        : `需要回撤率 >= 35%（当前：${athDrawdown?.toFixed(2) || 'N/A'}%）`;
+        ? t('signals.risk.activeBearFmt', { drawdown: fmtPct(athDrawdown), thermometer: thermometerLabel })
+        : t('signals.risk.pendingBearFmt', { drawdown: fmtPct(athDrawdown) });
     }
-    
+
     validationSignals.push({
-      name: '风险温度计',
+      name: t('signals.risk.name'),
       description: riskDescription,
       active: riskSignal,
-      details: riskDetails
+      details: riskDetails,
     });
-    
-    // 检验层B：ETF 加速器信号
+
+    // ETF 加速器
     let etfSignal = false;
     let etfDescription = '';
     let etfDetails = '';
-    
+
+    const acceleratorKey = etfAccelerator ? ETF_ACCEL_KEYS[etfAccelerator] : '';
+    const acceleratorLabel = acceleratorKey ? t(`etfAccelerator.${acceleratorKey}`) : (etfAccelerator ?? t('signals.etf.unknownAccelerator'));
+    const aumLabel = etfAum != null ? formatETFValue(etfAum) : '';
+
     if (targetState === '牛市进攻' || targetState === '牛市修复') {
-      // 牛市需要：ETF 顺风
-      etfSignal = etfAccelerator === '顺风' && etfAum && etfAum > 0;
-      etfDescription = 'ETF 加速器：顺风（持续净流入，AUM 回升）';
+      etfSignal = etfAccelerator === '顺风' && etfAum !== null && etfAum !== undefined && etfAum > 0;
+      etfDescription = t('signals.etf.bullDescription');
       etfDetails = etfSignal && etfAum
-        ? `ETF 加速器：${etfAccelerator}，AUM：${formatETFValue(etfAum)}`
-        : `需要 ETF 转为持续净流入且 AUM 回升（当前：${etfAccelerator || '未知'}）`;
-    } else if (targetState === '熊市反弹' || targetState === '熊市消化') {
-      // 熊市反弹可能需要 ETF 钝化（卖压衰竭），熊市消化可能需要 ETF 逆风
-      if (targetState === '熊市反弹') {
-        etfSignal = etfAccelerator === '钝化' || (etfAccelerator === '顺风' && etfAum && etfAum > 0);
-        etfDescription = 'ETF 加速器：钝化或顺风（卖压衰竭或开始流入）';
-        etfDetails = etfSignal && etfAum
-          ? `ETF 加速器：${etfAccelerator}，AUM：${formatETFValue(etfAum)}`
-          : `需要 ETF 钝化（卖压衰竭）或转为顺风（当前：${etfAccelerator || '未知'}）`;
-      } else {
-        // 熊市消化：ETF 逆风或钝化都可以
-        etfSignal = etfAccelerator === '逆风' || etfAccelerator === '钝化';
-        etfDescription = 'ETF 加速器：逆风或钝化（持续流出或卖压衰竭）';
-        etfDetails = etfSignal && etfAum
-          ? `ETF 加速器：${etfAccelerator}，AUM：${formatETFValue(etfAum)}`
-          : `需要 ETF 逆风（持续流出）或钝化（卖压衰竭）（当前：${etfAccelerator || '未知'}）`;
-      }
+        ? t('signals.etf.bullActiveFmt', { accelerator: acceleratorLabel, aum: aumLabel })
+        : t('signals.etf.bullPendingFmt', { accelerator: acceleratorLabel || t('signals.etf.unknownAccelerator') });
+    } else if (targetState === '熊市反弹') {
+      etfSignal = etfAccelerator === '钝化' || (etfAccelerator === '顺风' && etfAum !== null && etfAum !== undefined && etfAum > 0);
+      etfDescription = t('signals.etf.bearBounceDescription');
+      etfDetails = etfSignal && etfAum
+        ? t('signals.etf.bearBounceActiveFmt', { accelerator: acceleratorLabel, aum: aumLabel })
+        : t('signals.etf.bearBouncePendingFmt', { accelerator: acceleratorLabel || t('signals.etf.unknownAccelerator') });
+    } else if (targetState === '熊市消化') {
+      etfSignal = etfAccelerator === '逆风' || etfAccelerator === '钝化';
+      etfDescription = t('signals.etf.bearDigestDescription');
+      etfDetails = etfSignal && etfAum
+        ? t('signals.etf.bearDigestActiveFmt', { accelerator: acceleratorLabel, aum: aumLabel })
+        : t('signals.etf.bearDigestPendingFmt', { accelerator: acceleratorLabel || t('signals.etf.unknownAccelerator') });
     }
-    
+
     validationSignals.push({
-      name: 'ETF 加速器',
+      name: t('signals.etf.name'),
       description: etfDescription,
       active: etfSignal,
-      details: etfDetails
+      details: etfDetails,
     });
-    
-    // 计算激活的信号数量（只计算两个硬规则，不包括校验层）
+
     const activeCount = signals.filter(s => s.active).length;
     const totalCount = signals.length;
-    
+
     transitions.push({
       targetState,
       targetTrend,
@@ -637,12 +618,12 @@ const getStateTransitionSignals = (): Transition[] => {
       validationSignals,
       activeCount,
       totalCount,
-      progress: totalCount > 0 ? (activeCount / totalCount) * 100 : 0
+      progress: totalCount > 0 ? (activeCount / totalCount) * 100 : 0,
     });
   });
-  
+
   return transitions;
-};
+});
 
 const getETFAcceleratorColor = (accelerator: string) => {
   switch (accelerator) {
@@ -1306,7 +1287,7 @@ onMounted(() => {
             </p>
             <div class="transitions-grid">
               <div 
-                v-for="(transition, index) in getStateTransitionSignals()" 
+                v-for="(transition, index) in stateTransitionSignals" 
                 :key="index"
                 class="transition-card"
               >
