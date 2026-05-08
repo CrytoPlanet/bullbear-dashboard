@@ -733,7 +733,7 @@ onMounted(() => {
         {{ loading ? '加载中...' : '🔄 刷新数据' }}
       </button>
       <div v-if="currentQuadrant" class="status-summary">
-        <p class="status-primary">当前状态：{{ currentQuadrant.en }}（{{ currentQuadrant.cn }}）</p>
+        <p class="status-primary">{{ $t('status.currentLabel') }}{{ currentQuadrant.name }}</p>
         <p class="status-secondary">{{ currentQuadrant.trend }}｜{{ currentQuadrant.flow }}</p>
       </div>
       <div class="lang-toggle" role="group" :aria-label="$t('langToggle.aria')">
@@ -1414,7 +1414,7 @@ onMounted(() => {
             <div class="detail-card">
             <div class="detail-label">
               <span class="detail-icon">{{ getDataIcon(key as string) }}</span>
-              {{ DATA_LABELS[key] || key }}
+              {{ $t(`data.${String(key)}`) }}
             </div>
             <div class="detail-value" :class="key === 'etf_net_flow' && item.value > 0 ? 'positive' : key === 'etf_net_flow' && item.value < 0 ? 'negative' : ''">
               {{ formatValue(item.value, key as string) }}
