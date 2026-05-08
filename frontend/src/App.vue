@@ -1160,17 +1160,17 @@ onMounted(() => {
         <!-- 检验层B：ETF加速器 -->
         <div v-if="stateData && stateData.ok && stateData.validation" class="validation-section fade-in">
           <div class="section-header">
-            <span class="section-badge validation-layer">检验层B</span>
-            <h2>🚀 ETF 加速器 (Validation Layer 2)</h2>
+            <span class="section-badge validation-layer">{{ $t('section.etfAccelerator.badge') }}</span>
+            <h2>{{ $t('section.etfAccelerator.title') }}</h2>
           </div>
-          <p class="section-description">观察现货 ETF 的净流入/流出 (Net Flow) 和管理规模 (AUM)</p>
+          <p class="section-description">{{ $t('section.etfAccelerator.description') }}</p>
           
           <div class="validation-card">
             <div class="etf-status" :style="{ color: getETFAcceleratorColor(stateData.validation.etf_accelerator) }">
-              <div class="etf-label">{{ stateData.validation.etf_accelerator || '未知' }}</div>
+              <div class="etf-label">{{ ETF_ACCEL_KEYS[stateData.validation.etf_accelerator] ? $t(`etfAccelerator.${ETF_ACCEL_KEYS[stateData.validation.etf_accelerator]}`) : (stateData.validation.etf_accelerator || $t('etfAccelerator.unknown')) }}</div>
               <div class="etf-metrics">
                 <div v-if="stateData.validation.etf_net_flow !== null && stateData.validation.etf_net_flow !== undefined" class="etf-metric-item">
-                  <div class="etf-metric-label">净资金流</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.netFlowLabel') }}</div>
                   <div class="etf-metric-value">
                     <span class="etf-icon">{{ stateData.validation.etf_net_flow > 0 ? '📈' : '📉' }}</span>
                     <span :class="stateData.validation.etf_net_flow > 0 ? 'positive' : 'negative'">
@@ -1178,26 +1178,26 @@ onMounted(() => {
                       <span class="etf-compact-value">({{ formatETFValue(stateData.validation.etf_net_flow) }})</span>
                     </span>
                   </div>
-                  <div class="etf-metric-desc">现货 ETF 的净资金流入（正数）或流出（负数）</div>
+                  <div class="etf-metric-desc">{{ $t('etfAccelerator.netFlowDesc') }}</div>
                 </div>
                 <div v-else class="etf-metric-item">
-                  <div class="etf-metric-label">净资金流</div>
-                  <div class="etf-metric-value unavailable">数据暂未可用</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.netFlowLabel') }}</div>
+                  <div class="etf-metric-value unavailable">{{ $t('etfAccelerator.unavailable') }}</div>
                 </div>
                 <div v-if="stateData.validation.etf_aum !== null && stateData.validation.etf_aum !== undefined" class="etf-metric-item">
-                  <div class="etf-metric-label">资产管理规模 (AUM)</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.aumLabel') }}</div>
                   <div class="etf-metric-value">
                     <span class="etf-full-value">${{ stateData.validation.etf_aum.toLocaleString('en-US', { maximumFractionDigits: 0 }) }}</span>
                     <span class="etf-compact-value">({{ formatETFValue(stateData.validation.etf_aum) }})</span>
                   </div>
-                  <div class="etf-metric-desc">ETF 的总资产管理规模</div>
+                  <div class="etf-metric-desc">{{ $t('etfAccelerator.aumDesc') }}</div>
                 </div>
                 <div v-else class="etf-metric-item">
-                  <div class="etf-metric-label">资产管理规模 (AUM)</div>
-                  <div class="etf-metric-value unavailable">数据暂未可用</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.aumLabel') }}</div>
+                  <div class="etf-metric-value unavailable">{{ $t('etfAccelerator.unavailable') }}</div>
                 </div>
                 <div v-if="stateData.validation.etf_flow_14d_sum !== null && stateData.validation.etf_flow_14d_sum !== undefined" class="etf-metric-item">
-                  <div class="etf-metric-label">近14日净流入合计</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.flow14dLabel') }}</div>
                   <div class="etf-metric-value">
                     <span class="etf-icon">{{ stateData.validation.etf_flow_14d_sum > 0 ? '📈' : stateData.validation.etf_flow_14d_sum < 0 ? '📉' : '➖' }}</span>
                     <span :class="stateData.validation.etf_flow_14d_sum > 0 ? 'positive' : stateData.validation.etf_flow_14d_sum < 0 ? 'negative' : ''">
@@ -1205,70 +1205,70 @@ onMounted(() => {
                       <span class="etf-compact-value">({{ formatETFValue(stateData.validation.etf_flow_14d_sum) }})</span>
                     </span>
                   </div>
-                  <div class="etf-metric-desc">用于判断近期资金方向与 AUM 趋势</div>
+                  <div class="etf-metric-desc">{{ $t('etfAccelerator.flow14dDesc') }}</div>
                 </div>
                 <div v-else class="etf-metric-item">
-                  <div class="etf-metric-label">近14日净流入合计</div>
-                  <div class="etf-metric-value unavailable">数据暂未可用</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.flow14dLabel') }}</div>
+                  <div class="etf-metric-value unavailable">{{ $t('etfAccelerator.unavailable') }}</div>
                 </div>
                 <div class="etf-metric-item">
-                  <div class="etf-metric-label">流入/流出速度</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.flowSpeedLabel') }}</div>
                   <div class="etf-metric-subrow">
-                    <span>近7日均值</span>
+                    <span>{{ $t('etfAccelerator.avgRecent') }}</span>
                     <span v-if="stateData.validation.etf_flow_recent_avg !== null && stateData.validation.etf_flow_recent_avg !== undefined" :class="stateData.validation.etf_flow_recent_avg > 0 ? 'positive' : stateData.validation.etf_flow_recent_avg < 0 ? 'negative' : ''">
                       {{ formatETFValue(stateData.validation.etf_flow_recent_avg) }}
                     </span>
                     <span v-else class="unavailable">—</span>
                   </div>
                   <div class="etf-metric-subrow">
-                    <span>前7日均值</span>
+                    <span>{{ $t('etfAccelerator.avgPrev') }}</span>
                     <span v-if="stateData.validation.etf_flow_prev_avg !== null && stateData.validation.etf_flow_prev_avg !== undefined" :class="stateData.validation.etf_flow_prev_avg > 0 ? 'positive' : stateData.validation.etf_flow_prev_avg < 0 ? 'negative' : ''">
                       {{ formatETFValue(stateData.validation.etf_flow_prev_avg) }}
                     </span>
                     <span v-else class="unavailable">—</span>
                   </div>
                   <div class="etf-metric-subrow">
-                    <span>流入趋势</span>
+                    <span>{{ $t('etfAccelerator.flowTrendLabel') }}</span>
                     <span :class="getTrendBadge(stateData.validation.etf_flow_trend).className">
                       {{ getTrendBadge(stateData.validation.etf_flow_trend).icon }} {{ getTrendBadge(stateData.validation.etf_flow_trend).text }}
                     </span>
                   </div>
                   <div class="etf-metric-subrow">
-                    <span>AUM 趋势</span>
+                    <span>{{ $t('etfAccelerator.aumTrendLabel') }}</span>
                     <span :class="getTrendBadge(stateData.validation.etf_aum_trend).className">
                       {{ getTrendBadge(stateData.validation.etf_aum_trend).icon }} {{ getTrendBadge(stateData.validation.etf_aum_trend).text }}
                     </span>
                   </div>
                   <div class="etf-metric-desc">
-                    近7日与前7日的均值对比，用于判断流入/流出速度是否减缓
+                    {{ $t('etfAccelerator.flowSpeedDesc') }}
                   </div>
                 </div>
                 <div class="etf-metric-item">
-                  <div class="etf-metric-label">正流入占比</div>
+                  <div class="etf-metric-label">{{ $t('etfAccelerator.posRatioLabel') }}</div>
                   <div class="etf-metric-value">
                     <span class="etf-icon">📊</span>
                     <span>{{ formatRatioPercent(stateData.validation.etf_flow_pos_ratio, 0) }}</span>
                   </div>
-                  <div class="etf-metric-desc">近周期净流入为正的天数占比</div>
+                  <div class="etf-metric-desc">{{ $t('etfAccelerator.posRatioDesc') }}</div>
                 </div>
               </div>
               <div class="etf-rule-note">
-                <strong>判定口径：</strong>
-                顺风 = 净流入为主且 AUM 趋势向上；逆风 = 净流出为主且 AUM 趋势向下；钝化 = 两者不一致或数据不足
+                <strong>{{ $t('section.etfAccelerator.ruleNote') }}</strong>
+                {{ $t('section.etfAccelerator.ruleNoteBody') }}
               </div>
             </div>
             <div class="etf-info">
               <p v-if="stateData.validation.etf_accelerator === '顺风'" class="etf-info-text">
-                <strong>顺风（加速）：</strong>持续净流入，加速上涨趋势。ETF 资金持续净流入，为市场提供增量资金支持，推动价格上涨。
+                <strong>{{ $t('etfAccelerator.info.tailwindStrong') }}</strong>{{ $t('etfAccelerator.info.tailwindBody') }}
               </p>
               <p v-else-if="stateData.validation.etf_accelerator === '逆风'" class="etf-info-text">
-                <strong>逆风（抑制）：</strong>持续净流出，放大下跌压力。ETF 资金持续净流出，增加市场卖压，可能加速价格下跌。
+                <strong>{{ $t('etfAccelerator.info.headwindStrong') }}</strong>{{ $t('etfAccelerator.info.headwindBody') }}
               </p>
               <p v-else-if="stateData.validation.etf_accelerator === '钝化'" class="etf-info-text">
-                <strong>钝化：</strong>流出速度减缓，通常意味着卖压衰竭，可能转入震荡消化。卖压逐渐减弱，市场可能进入横盘整理阶段。
+                <strong>{{ $t('etfAccelerator.info.bluntedStrong') }}</strong>{{ $t('etfAccelerator.info.bluntedBody') }}
               </p>
               <p v-else class="etf-info-text">
-                <strong>未知：</strong>无法获取 ETF 数据，请检查网络连接或数据源。系统无法判断 ETF 资金流向对市场的影响。
+                <strong>{{ $t('etfAccelerator.info.unknownStrong') }}</strong>{{ $t('etfAccelerator.info.unknownBody') }}
               </p>
             </div>
           </div>
