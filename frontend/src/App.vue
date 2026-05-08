@@ -2,6 +2,14 @@
 import { ref, onMounted, computed } from 'vue';
 import { type DataResult, DATA_LABELS, type StateApiResponse, STATE_STYLES, RISK_COLORS, QUADRANT_MAP } from './types';
 import TradingViewChart from './components/TradingViewChart.vue';
+import { useI18n } from 'vue-i18n';
+import { setLocale, type AppLocale } from './locales';
+
+const { t } = useI18n();
+
+function onSetLocale(loc: AppLocale) {
+  setLocale(loc);
+}
 
 // 检测是否为开发环境（localhost）
 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -687,6 +695,20 @@ onMounted(() => {
       <div v-if="currentQuadrant" class="status-summary">
         <p class="status-primary">当前状态：{{ currentQuadrant.en }}（{{ currentQuadrant.cn }}）</p>
         <p class="status-secondary">{{ currentQuadrant.trend }}｜{{ currentQuadrant.flow }}</p>
+      </div>
+      <div class="lang-toggle" role="group" :aria-label="$t('langToggle.aria')">
+        <button
+          type="button"
+          class="lang-btn"
+          :class="{ active: $i18n.locale === 'zh' }"
+          @click="onSetLocale('zh')"
+        >{{ $t('langToggle.zh') }}</button>
+        <button
+          type="button"
+          class="lang-btn"
+          :class="{ active: $i18n.locale === 'en' }"
+          @click="onSetLocale('en')"
+        >{{ $t('langToggle.en') }}</button>
       </div>
     </header>
 
@@ -1390,6 +1412,7 @@ onMounted(() => {
 }
 
 header {
+  position: relative;
   margin-bottom: 3rem;
   border-bottom: 1px solid #1e293b;
   padding-bottom: 1rem;
@@ -3136,13 +3159,50 @@ h1 {
   .state-header {
     grid-template-columns: 1fr;
   }
-  
+
   .quadrant-grid {
     height: 300px;
   }
-  
+
   .quadrant-label {
     font-size: 1rem;
   }
+}
+
+.lang-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: inline-flex;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.lang-btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-btn:hover {
+  color: #e2e8f0;
+}
+
+.lang-btn.active {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+.lang-btn + .lang-btn {
+  border-left: 1px solid #334155;
 }
 </style>
