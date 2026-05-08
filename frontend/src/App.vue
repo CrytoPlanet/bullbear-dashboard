@@ -275,8 +275,8 @@ const getRiskThermometerColor = (thermometer: string) => {
   }
 };
 
-// 获取价格与均线（MA50/MA200）的关系
-const getPriceMARelation = () => {
+// 价格与均线（MA50/MA200）的关系
+const priceMARelation = computed(() => {
   if (!stateData.value?.metadata) return null;
   const btcPrice = stateData.value.metadata.btc_price;
   const ma50 = stateData.value.metadata.ma50;
@@ -288,24 +288,18 @@ const getPriceMARelation = () => {
   const diff50 = ((btcPrice - ma50) / ma50) * 100;
   const diff200 = ((btcPrice - ma200) / ma200) * 100;
 
-  let statusText = '价格与均线重合或数据不足';
-  let summary = '价格与均线重合或数据不足，趋势无法判定';
+  let key: 'aboveBoth' | 'belowBoth' | 'aboveMa50' | 'belowMa50' | 'unknown' = 'unknown';
   let statusClass = '';
-
   if (above50 && above200) {
-    statusText = '价格在 MA50 和 MA200 上方';
-    summary = '多头排列条件之一：价格在 MA200 上方（且高于 MA50）';
+    key = 'aboveBoth';
     statusClass = 'positive';
   } else if (!above50 && !above200) {
-    statusText = '价格在 MA50 和 MA200 下方';
-    summary = '空头排列条件之一：价格在 MA200 下方（且低于 MA50）';
+    key = 'belowBoth';
     statusClass = 'negative';
   } else if (above50 && !above200) {
-    statusText = '价格在 MA50 上方、MA200 下方';
-    summary = '价格处于 MA50 与 MA200 之间，趋势未成列';
+    key = 'aboveMa50';
   } else if (!above50 && above200) {
-    statusText = '价格在 MA50 下方、MA200 上方';
-    summary = '价格低于 MA50 但高于 MA200，信号分歧';
+    key = 'belowMa50';
   }
 
   return {
@@ -313,11 +307,11 @@ const getPriceMARelation = () => {
     above200,
     diff50,
     diff200,
-    statusText,
-    summary,
+    statusText: t(`maPrice.${key}.status`),
+    summary: t(`maPrice.${key}.summary`),
     statusClass,
   };
-};
+});
 
 // 获取趋势结构结论
 const getTrendConclusion = () => {
@@ -984,23 +978,23 @@ onMounted(() => {
                 <span class="trend-icon">📊</span>
               <h3>价格与均线关系</h3>
               </div>
-              <div v-if="getPriceMARelation()" class="trend-content">
-                <div class="trend-status" :class="getPriceMARelation()?.statusClass">
+              <div v-if="priceMARelation" class="trend-content">
+                <div class="trend-status" :class="priceMARelation?.statusClass">
                   <span class="trend-indicator">
-                    {{ getPriceMARelation()?.statusClass === 'positive' ? '📈' : getPriceMARelation()?.statusClass === 'negative' ? '📉' : '⚖️' }}
+                    {{ priceMARelation?.statusClass === 'positive' ? '📈' : priceMARelation?.statusClass === 'negative' ? '📉' : '⚖️' }}
                   </span>
                   <span class="trend-text">
-                    {{ getPriceMARelation()?.statusText }}
+                    {{ priceMARelation?.statusText }}
                   </span>
                 </div>
                 <div class="trend-detail">
-                  MA50 差值: {{ (() => { const rel = getPriceMARelation(); if (!rel) return '0.00'; return (rel.diff50 > 0 ? '+' : '') + rel.diff50.toFixed(2); })() }}%
+                  MA50 差值: {{ (() => { const rel = priceMARelation; if (!rel) return '0.00'; return (rel.diff50 > 0 ? '+' : '') + rel.diff50.toFixed(2); })() }}%
                 </div>
                 <div class="trend-detail">
-                  MA200 差值: {{ (() => { const rel = getPriceMARelation(); if (!rel) return '0.00'; return (rel.diff200 > 0 ? '+' : '') + rel.diff200.toFixed(2); })() }}%
+                  MA200 差值: {{ (() => { const rel = priceMARelation; if (!rel) return '0.00'; return (rel.diff200 > 0 ? '+' : '') + rel.diff200.toFixed(2); })() }}%
                 </div>
                 <div class="trend-description">
-                  {{ getPriceMARelation()?.summary }}
+                  {{ priceMARelation?.summary }}
                 </div>
               </div>
               <div v-else class="trend-content">
