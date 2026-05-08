@@ -313,71 +313,66 @@ const priceMARelation = computed(() => {
   };
 });
 
-// 获取趋势结构结论
-const getTrendConclusion = () => {
+// 趋势结构结论
+const trendConclusion = computed(() => {
   if (!stateData.value?.metadata) return null;
   const btcPrice = stateData.value.metadata.btc_price;
   const ma50 = stateData.value.metadata.ma50;
   const ma200 = stateData.value.metadata.ma200;
   const ma200Slope = stateData.value.metadata.ma200_slope;
-  
+
   if (btcPrice == null || ma50 == null || ma200 == null || ma200Slope === undefined) return null;
-  
-  // 多头排列：价格在 MA200 上方，且 MA200 走平或向上（斜率 >= 0）
+
   if (btcPrice > ma200 && ma200Slope >= 0) {
     const isBullStack = ma50 > ma200;
+    const k = isBullStack ? 'bullStack' : 'trendBull';
     return {
-      type: 'bullish',
-      name: isBullStack ? '多头排列（趋势多）' : '趋势多',
-      description: isBullStack
-        ? '价格在 MA200 上方，MA200 走平或向上，且 MA50 在 MA200 上方'
-        : '价格在 MA200 上方，且 MA200 走平或向上',
+      type: 'bullish' as const,
+      name: t(`trendStructure.${k}.name`),
+      description: t(`trendStructure.${k}.desc`),
       color: '#10b981',
-      icon: '📈'
+      icon: '📈',
     };
   }
-  
-  // 空头排列：价格在 MA200 下方，且 MA200 趋势向下（斜率 < 0）
+
   if (btcPrice < ma200 && ma200Slope < 0) {
     const isBearStack = btcPrice < ma50 && ma50 < ma200;
+    const k = isBearStack ? 'bearStack' : 'trendBear';
     return {
-      type: 'bearish',
-      name: isBearStack ? '空头排列（趋势空）' : '趋势空',
-      description: isBearStack
-        ? '价格在 MA200 下方，MA200 趋势向下，且 MA50 在 MA200 下方'
-        : '价格在 MA200 下方，且 MA200 趋势向下',
+      type: 'bearish' as const,
+      name: t(`trendStructure.${k}.name`),
+      description: t(`trendStructure.${k}.desc`),
       color: '#ef4444',
-      icon: '📉'
+      icon: '📉',
     };
   }
-  
-  // 降级判断：斜率条件不满足时，按价格相对 MA200 处理
+
   if (btcPrice > ma200) {
     return {
-      type: 'bullish',
-      name: '趋势多（降级）',
-      description: '价格在 MA200 上方，但 MA200 走弱（斜率 < 0）',
+      type: 'bullish' as const,
+      name: t('trendStructure.bullDegrade.name'),
+      description: t('trendStructure.bullDegrade.desc'),
       color: '#f59e0b',
-      icon: '⚠️'
+      icon: '⚠️',
     };
   }
   if (btcPrice < ma200) {
     return {
-      type: 'bearish',
-      name: '趋势空（降级）',
-      description: '价格在 MA200 下方，但 MA200 走平或向上（斜率 >= 0）',
+      type: 'bearish' as const,
+      name: t('trendStructure.bearDegrade.name'),
+      description: t('trendStructure.bearDegrade.desc'),
       color: '#f59e0b',
-      icon: '⚠️'
+      icon: '⚠️',
     };
   }
   return {
-    type: 'uncertain',
-    name: '无法确定',
-    description: '价格与 MA200 重合或数据不足，趋势无法判定',
+    type: 'uncertain' as const,
+    name: t('trendStructure.unknown.name'),
+    description: t('trendStructure.unknown.desc'),
     color: '#6b7280',
-    icon: '❓'
+    icon: '❓',
   };
-};
+});
 
 // 获取趋势质量判定
 const getTrendQuality = () => {
@@ -954,17 +949,17 @@ onMounted(() => {
           <p class="section-description">使用 MA50（中期节奏线）和 MA200（长期生命线）的排列关系</p>
           
           <!-- 趋势结构结论 -->
-          <div v-if="getTrendConclusion()" class="trend-conclusion-card">
+          <div v-if="trendConclusion" class="trend-conclusion-card">
             <div class="trend-conclusion-header">
-              <span class="trend-conclusion-icon">{{ getTrendConclusion()?.icon }}</span>
+              <span class="trend-conclusion-icon">{{ trendConclusion?.icon }}</span>
               <h3>趋势结构结论</h3>
             </div>
             <div class="trend-conclusion-content">
-              <div class="trend-conclusion-name" :style="{ color: getTrendConclusion()?.color }">
-                {{ getTrendConclusion()?.name }}
+              <div class="trend-conclusion-name" :style="{ color: trendConclusion?.color }">
+                {{ trendConclusion?.name }}
               </div>
               <div class="trend-conclusion-desc">
-                {{ getTrendConclusion()?.description }}
+                {{ trendConclusion?.description }}
               </div>
               <div v-if="stateData.trend" class="trend-conclusion-trend">
                 系统判断：<strong>{{ stateData.trend }}</strong>
