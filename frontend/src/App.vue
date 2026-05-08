@@ -1352,7 +1352,7 @@ onMounted(() => {
 
       <!-- 原始数据 -->
       <div class="details-section" :class="{ 'fade-in': !initialLoad }">
-        <h2>📊 原始数据</h2>
+        <h2>{{ $t('section.rawData.title') }}</h2>
         <div v-if="loading && Object.keys(data).length === 0" class="data-loading-overlay">
           <div class="data-loading-spinner">
             <div class="spinner-ring"></div>
@@ -1360,7 +1360,7 @@ onMounted(() => {
             <div class="spinner-ring"></div>
             <div class="spinner-ring"></div>
           </div>
-          <p class="data-loading-text">正在加载原始数据...</p>
+          <p class="data-loading-text">{{ $t('loading.rawData') }}</p>
         </div>
         <div class="details-grid" v-if="Object.keys(data).length > 0">    
           <!-- 原始数据源信息-->
@@ -1373,10 +1373,10 @@ onMounted(() => {
             <div class="detail-value" :class="key === 'etf_net_flow' && item.value > 0 ? 'positive' : key === 'etf_net_flow' && item.value < 0 ? 'negative' : ''">
               {{ formatValue(item.value, key as string) }}
             </div>
-            <div class="detail-provider">来源: {{ item.provider }}</div>
+            <div class="detail-provider">{{ $t('data.sourceLabel') }} {{ item.provider }}</div>
             <div class="detail-description">
               <span v-if="item.metadata?.currency" class="detail-meta-item">{{ item.metadata.currency }}</span>
-              <span v-if="item.metadata?.period" class="detail-meta-item">周期: {{ item.metadata.period }}</span>
+              <span v-if="item.metadata?.period" class="detail-meta-item">{{ $t('data.periodLabel') }} {{ item.metadata.period }}</span>
               <span v-if="item.metadata?.description" class="detail-meta-item">{{ item.metadata.description }}</span>
             </div>
           </div>
