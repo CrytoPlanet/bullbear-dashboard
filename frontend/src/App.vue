@@ -770,19 +770,19 @@ onMounted(() => {
         <!-- 一、核心输出：四象限状态矩阵 -->
         <div v-if="stateData && stateData.ok" class="quadrant-section fade-in">
           <div class="section-header">
-            <span class="section-badge core-output">核心输出</span>
-            <h2>📈 四象限状态矩阵</h2>
+            <span class="section-badge core-output">{{ $t('badge.coreOutput') }}</span>
+            <h2>{{ $t('section.quadrant.title') }}</h2>
           </div>
-          <p class="section-description">市场状态由"趋势结构"和"资金姿态"共同决定</p>
+          <p class="section-description">{{ $t('section.quadrant.description') }}</p>
           <div class="quadrant-chart-container">
             <div class="quadrant-chart">
               <!-- Y轴标签（趋势方向） -->
-              <div class="axis-y-label top">趋势多</div>
-              <div class="axis-y-label bottom">趋势空</div>
-              
+              <div class="axis-y-label top">{{ $t('axis.trendUp') }}</div>
+              <div class="axis-y-label bottom">{{ $t('axis.trendDown') }}</div>
+
               <!-- X轴标签（资金姿态） -->
-              <div class="axis-x-label left">资金防守</div>
-              <div class="axis-x-label right">资金进攻</div>
+              <div class="axis-x-label left">{{ $t('axis.fundingLeft') }}</div>
+              <div class="axis-x-label right">{{ $t('axis.fundingRight') }}</div>
               
               <!-- 中心分割线（仅水平线） -->
               <div class="axis-line horizontal"></div>
@@ -790,23 +790,23 @@ onMounted(() => {
               <!-- 四象限 -->
               <div class="quadrant-wrapper">
                 <!-- 左上角：趋势多 + 资金防守 = 牛市修复 -->
-                <div 
+                <div
                   class="quadrant quadrant-2"
                   :class="{ active: stateData.state === '牛市修复' }"
                 >
                   <div class="quadrant-content">
                     <div class="quadrant-icon">📈</div>
-                    <div class="quadrant-name">牛市修复</div>
+                    <div class="quadrant-name">{{ $t('quadrant.bullRecovery.name') }}</div>
                     <div class="quadrant-risk">MEDIUM RISK</div>
                     <!-- 达成条件指示灯 -->
                     <div class="condition-indicator">
                       <div class="condition-item" :class="{ met: stateData.trend === '趋势多' }">
                         <span class="condition-icon">{{ stateData.trend === '趋势多' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">趋势多</span>
+                        <span class="condition-text">{{ $t('trend.bull') }}</span>
                       </div>
                       <div class="condition-item" :class="{ met: stateData.funding === '资金防守' }">
                         <span class="condition-icon">{{ stateData.funding === '资金防守' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">资金防守</span>
+                        <span class="condition-text">{{ $t('funding.defensive') }}</span>
                       </div>
                     </div>
                   </div>
@@ -818,23 +818,23 @@ onMounted(() => {
                 </div>
                 
                 <!-- 右上角：趋势多 + 资金进攻 = 牛市进攻 -->
-                <div 
+                <div
                   class="quadrant quadrant-1"
                   :class="{ active: stateData.state === '牛市进攻' }"
                 >
                   <div class="quadrant-content">
                     <div class="quadrant-icon">🔥</div>
-                    <div class="quadrant-name">牛市进攻</div>
+                    <div class="quadrant-name">{{ $t('quadrant.bullOffensive.name') }}</div>
                     <div class="quadrant-risk">HIGH RISK</div>
                     <!-- 达成条件指示灯 -->
                     <div class="condition-indicator">
                       <div class="condition-item" :class="{ met: stateData.trend === '趋势多' }">
                         <span class="condition-icon">{{ stateData.trend === '趋势多' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">趋势多</span>
+                        <span class="condition-text">{{ $t('trend.bull') }}</span>
                       </div>
                       <div class="condition-item" :class="{ met: stateData.funding === '资金进攻' }">
                         <span class="condition-icon">{{ stateData.funding === '资金进攻' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">资金进攻</span>
+                        <span class="condition-text">{{ $t('funding.offensive') }}</span>
                       </div>
                     </div>
                   </div>
@@ -846,23 +846,23 @@ onMounted(() => {
                 </div>
                 
                 <!-- 左下角：趋势空 + 资金防守 = 熊市消化 -->
-                <div 
+                <div
                   class="quadrant quadrant-4"
                   :class="{ active: stateData.state === '熊市消化' }"
                 >
                   <div class="quadrant-content">
                     <div class="quadrant-icon">🩸</div>
-                    <div class="quadrant-name">熊市消化</div>
+                    <div class="quadrant-name">{{ $t('quadrant.bearDigest.name') }}</div>
                     <div class="quadrant-risk">LOW RISK</div>
                     <!-- 达成条件指示灯 -->
                     <div class="condition-indicator">
                       <div class="condition-item" :class="{ met: stateData.trend === '趋势空' }">
                         <span class="condition-icon">{{ stateData.trend === '趋势空' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">趋势空</span>
+                        <span class="condition-text">{{ $t('trend.bear') }}</span>
                       </div>
                       <div class="condition-item" :class="{ met: stateData.funding === '资金防守' }">
                         <span class="condition-icon">{{ stateData.funding === '资金防守' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">资金防守</span>
+                        <span class="condition-text">{{ $t('funding.defensive') }}</span>
                       </div>
                     </div>
                   </div>
@@ -874,23 +874,23 @@ onMounted(() => {
                 </div>
                 
                 <!-- 右下角：趋势空 + 资金进攻 = 熊市反弹 -->
-                <div 
+                <div
                   class="quadrant quadrant-3"
                   :class="{ active: stateData.state === '熊市反弹' }"
                 >
                   <div class="quadrant-content">
                     <div class="quadrant-icon">⚡</div>
-                    <div class="quadrant-name">熊市反弹</div>
+                    <div class="quadrant-name">{{ $t('quadrant.bearBounce.name') }}</div>
                     <div class="quadrant-risk">MEDIUM RISK</div>
                     <!-- 达成条件指示灯 -->
                     <div class="condition-indicator">
                       <div class="condition-item" :class="{ met: stateData.trend === '趋势空' }">
                         <span class="condition-icon">{{ stateData.trend === '趋势空' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">趋势空</span>
+                        <span class="condition-text">{{ $t('trend.bear') }}</span>
                       </div>
                       <div class="condition-item" :class="{ met: stateData.funding === '资金进攻' }">
                         <span class="condition-icon">{{ stateData.funding === '资金进攻' ? '✅' : '⏳' }}</span>
-                        <span class="condition-text">资金进攻</span>
+                        <span class="condition-text">{{ $t('funding.offensive') }}</span>
                       </div>
                     </div>
                   </div>
