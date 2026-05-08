@@ -910,16 +910,16 @@ onMounted(() => {
         <!-- 硬规则1：趋势结构 -->
         <div v-if="stateData && stateData.ok && stateData.metadata" class="trend-analysis-section fade-in">
           <div class="section-header">
-            <span class="section-badge hard-rule">硬规则1</span>
-            <h2>📈 趋势结构 (Trend Structure)</h2>
+            <span class="section-badge hard-rule">{{ $t('section.trendStructure.badge') }}</span>
+            <h2>{{ $t('section.trendStructure.title') }}</h2>
           </div>
-          <p class="section-description">使用 MA50（中期节奏线）和 MA200（长期生命线）的排列关系</p>
+          <p class="section-description">{{ $t('section.trendStructure.description') }}</p>
           
           <!-- 趋势结构结论 -->
           <div v-if="trendConclusion" class="trend-conclusion-card">
             <div class="trend-conclusion-header">
               <span class="trend-conclusion-icon">{{ trendConclusion?.icon }}</span>
-              <h3>趋势结构结论</h3>
+              <h3>{{ $t('section.trendStructure.conclusionTitle') }}</h3>
             </div>
             <div class="trend-conclusion-content">
               <div class="trend-conclusion-name" :style="{ color: trendConclusion?.color }">
@@ -929,7 +929,7 @@ onMounted(() => {
                 {{ trendConclusion?.description }}
               </div>
               <div v-if="stateData.trend" class="trend-conclusion-trend">
-                系统判断：<strong>{{ stateData.trend }}</strong>
+                {{ $t('section.trendStructure.systemJudgment') }}<strong>{{ TREND_KEYS[stateData.trend] ? $t(`trend.${TREND_KEYS[stateData.trend]}`) : stateData.trend }}</strong>
               </div>
             </div>
           </div>
@@ -938,7 +938,7 @@ onMounted(() => {
             <div class="trend-card">
               <div class="trend-card-header">
                 <span class="trend-icon">📊</span>
-              <h3>价格与均线关系</h3>
+              <h3>{{ $t('trendCard.priceMARelation') }}</h3>
               </div>
               <div v-if="priceMARelation" class="trend-content">
                 <div class="trend-status" :class="priceMARelation?.statusClass">
@@ -950,74 +950,72 @@ onMounted(() => {
                   </span>
                 </div>
                 <div class="trend-detail">
-                  MA50 差值: {{ (() => { const rel = priceMARelation; if (!rel) return '0.00'; return (rel.diff50 > 0 ? '+' : '') + rel.diff50.toFixed(2); })() }}%
+                  {{ $t('trendCard.diff50Label') }}: {{ (() => { const rel = priceMARelation; if (!rel) return '0.00'; return (rel.diff50 > 0 ? '+' : '') + rel.diff50.toFixed(2); })() }}%
                 </div>
                 <div class="trend-detail">
-                  MA200 差值: {{ (() => { const rel = priceMARelation; if (!rel) return '0.00'; return (rel.diff200 > 0 ? '+' : '') + rel.diff200.toFixed(2); })() }}%
+                  {{ $t('trendCard.diff200Label') }}: {{ (() => { const rel = priceMARelation; if (!rel) return '0.00'; return (rel.diff200 > 0 ? '+' : '') + rel.diff200.toFixed(2); })() }}%
                 </div>
                 <div class="trend-description">
                   {{ priceMARelation?.summary }}
                 </div>
               </div>
               <div v-else class="trend-content">
-                <div class="trend-unavailable">数据暂未可用</div>
+                <div class="trend-unavailable">{{ $t('trendCard.unavailable') }}</div>
               </div>
             </div>
             
             <div class="trend-card">
               <div class="trend-card-header">
                 <span class="trend-icon">📈</span>
-                <h3>MA50 趋势</h3>
+                <h3>{{ $t('trendCard.ma50Trend') }}</h3>
               </div>
               <div v-if="stateData.metadata?.ma50_slope !== undefined" class="trend-content">
                 <div class="trend-status" :class="stateData.metadata.ma50_slope >= 0 ? 'positive' : 'negative'">
                   <span class="trend-indicator">{{ getSlopeEmoji(stateData.metadata.ma50_slope) }}</span>
                   <span class="trend-text">
-                    {{ stateData.metadata.ma50_slope >= 0 ? 'MA50 走平或向上' : 'MA50 趋势向下' }}
+                    {{ stateData.metadata.ma50_slope >= 0 ? $t('trendCard.ma50FlatUp') : $t('trendCard.ma50Down') }}
                   </span>
                 </div>
                 <div class="trend-detail">
-                  斜率: {{ stateData.metadata.ma50_slope > 0 ? '+' : '' }}{{ stateData.metadata.ma50_slope.toFixed(2) }}%/天
+                  {{ $t('trendCard.slopeLabel') }}: {{ stateData.metadata.ma50_slope > 0 ? '+' : '' }}{{ stateData.metadata.ma50_slope.toFixed(2) }}%{{ $t('trendCard.perDay') }}
                 </div>
                 <div class="trend-description">
-                  中期节奏线的趋势方向，反映市场中期推动力
+                  {{ $t('trendCard.ma50Description') }}
                 </div>
               </div>
               <div v-else class="trend-content">
-                <div class="trend-unavailable">数据暂未可用</div>
+                <div class="trend-unavailable">{{ $t('trendCard.unavailable') }}</div>
               </div>
             </div>
             
             <div class="trend-card">
               <div class="trend-card-header">
                 <span class="trend-icon">📈</span>
-                <h3>MA200 趋势</h3>
+                <h3>{{ $t('trendCard.ma200Trend') }}</h3>
               </div>
               <div v-if="stateData.metadata?.ma200_slope !== undefined" class="trend-content">
                 <div class="trend-status" :class="stateData.metadata.ma200_slope >= 0 ? 'positive' : 'negative'">
                   <span class="trend-indicator">{{ getSlopeEmoji(stateData.metadata.ma200_slope) }}</span>
                   <span class="trend-text">
-                    {{ stateData.metadata.ma200_slope >= 0 ? 'MA200 走平或向上' : 'MA200 趋势向下' }}
+                    {{ stateData.metadata.ma200_slope >= 0 ? $t('trendCard.ma200FlatUp') : $t('trendCard.ma200Down') }}
                   </span>
                 </div>
                 <div class="trend-detail">
-                  斜率: {{ stateData.metadata.ma200_slope > 0 ? '+' : '' }}{{ stateData.metadata.ma200_slope.toFixed(2) }}%/天
+                  {{ $t('trendCard.slopeLabel') }}: {{ stateData.metadata.ma200_slope > 0 ? '+' : '' }}{{ stateData.metadata.ma200_slope.toFixed(2) }}%{{ $t('trendCard.perDay') }}
                 </div>
                 <div class="trend-description">
-                  {{ stateData.metadata.ma200_slope >= 0 
-                    ? '多头排列条件之二：MA200 走平或向上（斜率 >= 0）' 
-                    : '空头排列条件之二：MA200 趋势向下（斜率 < 0）' }}
+                  {{ stateData.metadata.ma200_slope >= 0 ? $t('trendCard.ma200BullCondition') : $t('trendCard.ma200BearCondition') }}
                 </div>
               </div>
               <div v-else class="trend-content">
-                <div class="trend-unavailable">数据暂未可用</div>
+                <div class="trend-unavailable">{{ $t('trendCard.unavailable') }}</div>
               </div>
             </div>
             
             <div class="trend-card" v-if="trendQuality">
               <div class="trend-card-header">
                 <span class="trend-icon">⭐</span>
-                <h3>趋势质量判定</h3>
+                <h3>{{ $t('trendCard.quality') }}</h3>
               </div>
               <div class="trend-content">
                 <div class="trend-status" :class="trendQuality?.type === 'good' ? 'positive' : 'negative'">
