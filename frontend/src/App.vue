@@ -391,62 +391,49 @@ const trendQuality = computed(() => {
   return null;
 });
 
-// 获取资金组合模式信息（基于斜率）
-const getFundingPatternInfo = () => {
+// 资金组合模式信息（基于斜率）
+const fundingPatternInfo = computed(() => {
   if (!stateData.value?.metadata) return null;
   const stablecoinSlope = stateData.value.metadata.stablecoin_slope;
   const totalSlope = stateData.value.metadata.total_slope;
-  
+
   if (stablecoinSlope === undefined || totalSlope === undefined) return null;
-  
+
   const stablecoinTrend = stablecoinSlope > 0 ? '↑' : stablecoinSlope < 0 ? '↓' : '→';
   const totalTrend = totalSlope > 0 ? '↑' : totalSlope < 0 ? '↓' : '→';
-  
-  // 根据后端逻辑匹配模式
+
   if (stablecoinTrend === '↑' && totalTrend === '↑') {
     return {
       pattern: 'Stable ↑ + Total ↑',
-      name: '增量进攻',
-      funding: '资金进攻'
+      name: t('fundingPattern.incrementalOffensive.name'),
+      funding: t('funding.offensive'),
     };
   } else if (stablecoinTrend === '↓' && totalTrend === '↑') {
     return {
       pattern: 'Stable ↓ + Total ↑',
-      name: '强力进攻',
-      funding: '资金进攻'
+      name: t('fundingPattern.strongOffensive.name'),
+      funding: t('funding.offensive'),
     };
   } else if (stablecoinTrend === '↑' && totalTrend === '↓') {
     return {
       pattern: 'Stable ↑ + Total ↓',
-      name: '去风险防守',
-      funding: '资金防守'
+      name: t('fundingPattern.deriskDefensive.name'),
+      funding: t('funding.defensive'),
     };
   } else if (stablecoinTrend === '↓' && totalTrend === '↓') {
     return {
       pattern: 'Stable ↓ + Total ↓',
-      name: '深度防守/撤退',
-      funding: '资金防守'
+      name: t('fundingPattern.deepDefensive.name'),
+      funding: t('funding.defensive'),
     };
   }
 
   return {
-    pattern: '数据不足',
-    name: '历史不足/走平',
-    funding: '无法判断'
+    pattern: '—',
+    name: t('fundingPattern.insufficient.name'),
+    funding: t('funding.unknown'),
   };
-};
-
-// 获取资金姿态组合模式
-const getFundingPattern = () => {
-  if (!stateData.value?.metadata) return null;
-  const stablecoinChange = stateData.value.metadata.stablecoin_change;
-  const totalMarketCap = stateData.value.metadata.total_market_cap;
-  const stablecoinMarketCap = stateData.value.metadata.stablecoin_market_cap;
-  
-  // 需要从后端获取稳定币和总市值的斜率，但当前metadata中没有
-  // 这里先返回null，后续可以从后端添加这些数据
-  return null;
-};
+});
 
 // 计算状态切换信号（从当前状态切换到目标状态）
 interface TransitionSignal {
@@ -1124,10 +1111,10 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div v-if="getFundingPatternInfo()" class="funding-combination">
+            <div v-if="fundingPatternInfo" class="funding-combination">
               <div class="combination-label">当前组合模式：</div>
               <div class="combination-pattern">
-                {{ getFundingPatternInfo()?.pattern }} - {{ getFundingPatternInfo()?.name }}
+                {{ fundingPatternInfo?.pattern }} - {{ fundingPatternInfo?.name }}
               </div>
             </div>
           </div>
@@ -1138,22 +1125,22 @@ onMounted(() => {
               <h3>资金组合模式</h3>
             </div>
             <div class="funding-patterns">
-              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↑ + Total ↑' }">
+              <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↑ + Total ↑' }">
                 <div class="pattern-indicator">Stable ↑ + Total ↑</div>
                 <div class="pattern-name">增量进攻</div>
                 <div class="pattern-desc">场内现金变多，且资产也在涨，说明场外资金进场。偏进攻/偏牛</div>
               </div>
-              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↓ + Total ↑' }">
+              <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↓ + Total ↑' }">
                 <div class="pattern-indicator">Stable ↓ + Total ↑</div>
                 <div class="pattern-name">强力进攻</div>
                 <div class="pattern-desc">稳定币池子缩小换成币，风险资产大幅扩张。<strong>最强进攻状态</strong></div>
               </div>
-              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↑ + Total ↓' }">
+              <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↑ + Total ↓' }">
                 <div class="pattern-indicator">Stable ↑ + Total ↓</div>
                 <div class="pattern-name">去风险防守</div>
                 <div class="pattern-desc">币缩水，现金变大，投资者卖币换钱躲避风险。典型去风险/防守</div>
               </div>
-              <div class="funding-pattern-item" :class="{ active: getFundingPatternInfo()?.pattern === 'Stable ↓ + Total ↓' }">
+              <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↓ + Total ↓' }">
                 <div class="pattern-indicator">Stable ↓ + Total ↓</div>
                 <div class="pattern-name">深度防守/撤退</div>
                 <div class="pattern-desc">资产和现金同步缩水，说明资金彻底离开加密体系。更强的防守/彻底熊</div>
