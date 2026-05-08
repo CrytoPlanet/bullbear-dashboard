@@ -1132,26 +1132,26 @@ onMounted(() => {
         <!-- 检验层A：风险温度计 -->
         <div v-if="stateData && stateData.ok && stateData.validation" class="validation-section fade-in">
           <div class="section-header">
-            <span class="section-badge validation-layer">检验层A</span>
-            <h2>🌡️ 风险温度计 (Validation Layer 1)</h2>
+            <span class="section-badge validation-layer">{{ $t('section.riskThermometer.badge') }}</span>
+            <h2>{{ $t('section.riskThermometer.title') }}</h2>
           </div>
-          <p class="section-description">使用 ATH（历史最高价）回撤率来衡量风险</p>
+          <p class="section-description">{{ $t('section.riskThermometer.description') }}</p>
           
           <div class="validation-card">
             <div class="thermometer" :style="{ color: getRiskThermometerColor(stateData.validation.risk_thermometer) }">
-              <div class="thermometer-label">{{ stateData.validation.risk_thermometer }}</div>
+              <div class="thermometer-label">{{ THERMOMETER_KEYS[stateData.validation.risk_thermometer] ? $t(`thermometer.${THERMOMETER_KEYS[stateData.validation.risk_thermometer]}`) : stateData.validation.risk_thermometer }}</div>
               <div class="thermometer-value">{{ stateData.validation.ath_drawdown.toFixed(2) }}%</div>
               <div v-if="stateData.validation.ath_price !== null && stateData.validation.ath_price !== undefined" class="thermometer-ath">
-                ATH: ${{ stateData.validation.ath_price.toLocaleString('en-US', { maximumFractionDigits: 0 }) }}
+                {{ $t('section.riskThermometer.athLabel') }} ${{ stateData.validation.ath_price.toLocaleString('en-US', { maximumFractionDigits: 0 }) }}
               </div>
             </div>
             <div class="thermometer-info">
-              <p>公式: (ATH - 当前价格) / ATH × 100%</p>
+              <p>{{ $t('section.riskThermometer.formula') }}</p>
               <ul>
-                <li>&lt; 20%: 正常体温（36-37度，可大胆进攻）</li>
-                <li>20% ~ 35%: 低/中烧（37-39度，市场难受，需要修复）</li>
-                <li>&gt; 35%: 高烧威胁（熊市主导概率大增）</li>
-                <li>&gt; 60%: 生命体征极差（深出清阶段，处于快死透的区间）</li>
+                <li>{{ $t('thermometer.rangeUnder20') }}</li>
+                <li>{{ $t('thermometer.range20To35') }}</li>
+                <li>{{ $t('thermometer.rangeOver35') }}</li>
+                <li>{{ $t('thermometer.rangeOver60') }}</li>
               </ul>
             </div>
           </div>
