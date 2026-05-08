@@ -1277,12 +1277,12 @@ onMounted(() => {
         <!-- 三、核心切换逻辑 -->
         <div v-if="stateData && stateData.ok" class="bull-signals-section fade-in">
           <div class="section-header">
-            <span class="section-badge core-logic">核心切换逻辑</span>
-            <h2>🔄 状态切换信号</h2>
+            <span class="section-badge core-logic">{{ $t('section.transitions.badge') }}</span>
+            <h2>{{ $t('section.transitions.title') }}</h2>
           </div>
           <div class="bull-signals-info">
             <p class="signals-intro">
-              当前状态：<strong>{{ stateData.state }}</strong>。以下显示切换到其他状态需要的信号：
+              {{ $t('section.transitions.currentStatePrefix') }}<strong>{{ STATE_KEYS[stateData.state] ? $t(`quadrant.${STATE_KEYS[stateData.state]}.name`) : stateData.state }}</strong>{{ $t('section.transitions.currentStateSuffix') }}
             </p>
             <div class="transitions-grid">
               <div 
@@ -1294,7 +1294,7 @@ onMounted(() => {
                   <div class="transition-target">
                     <span class="transition-arrow">→</span>
                     <span class="transition-state" :style="{ color: STATE_STYLES[transition.targetState]?.bgColor || '#1e293b' }">
-                      {{ transition.targetState }}
+                      {{ STATE_KEYS[transition.targetState] ? $t(`quadrant.${STATE_KEYS[transition.targetState]}.name`) : transition.targetState }}
                     </span>
                   </div>
                   <div class="transition-progress">
@@ -1308,7 +1308,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <div class="transition-requirements">
-                  <div class="requirements-label">需要条件：</div>
+                  <div class="requirements-label">{{ $t('section.transitions.requirements') }}</div>
                   <div class="signals-list">
                     <div 
                       v-for="(signal, sigIndex) in transition.signals" 
@@ -1326,7 +1326,7 @@ onMounted(() => {
                   </div>
                   <!-- 校验层（不计入需要条件） -->
                   <div v-if="transition.validationSignals && transition.validationSignals.length > 0" class="validation-signals-section">
-                    <div class="validation-label">校验层（仅供参考）：</div>
+                    <div class="validation-label">{{ $t('section.transitions.validationLabel') }}</div>
                     <div class="signals-list">
                       <div 
                         v-for="(signal, sigIndex) in transition.validationSignals" 
