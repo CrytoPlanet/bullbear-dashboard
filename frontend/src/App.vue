@@ -1030,48 +1030,48 @@ onMounted(() => {
         <!-- 硬规则2：资金姿态 -->
         <div v-if="stateData && stateData.ok && stateData.metadata" class="funding-analysis-section fade-in">
           <div class="section-header">
-            <span class="section-badge hard-rule">硬规则2</span>
-            <h2>💰 资金姿态 (Capital Posture)</h2>
+            <span class="section-badge hard-rule">{{ $t('section.fundingPosture.badge') }}</span>
+            <h2>{{ $t('section.fundingPosture.title') }}</h2>
           </div>
-          <p class="section-description">核心在于观察资金是在"撤回现金避险"还是"进入风险资产进攻"</p>
+          <p class="section-description">{{ $t('section.fundingPosture.description') }}</p>
           
           <!-- 资金姿态变化程度 -->
           <div v-if="stateData.metadata?.stablecoin_slope !== undefined || stateData.metadata?.total_slope !== undefined" class="funding-change-card">
             <div class="funding-change-header">
               <span class="funding-change-icon">📊</span>
-              <h3>资金姿态变化程度</h3>
+              <h3>{{ $t('section.fundingPosture.changeTitle') }}</h3>
             </div>
             <div class="funding-change-intro">
-              <p>使用线性回归在对数坐标上计算最近10天的斜率，表示每日百分比变化率。正值表示上升（变多），负值表示下降（变少）。数据来源：CoinGecko历史API。</p>
+              <p>{{ $t('section.fundingPosture.changeIntro') }}</p>
               <p v-if="(stateData.metadata?.stablecoin_slope === 0 || stateData.metadata?.total_slope === 0) && stateData.metadata?.stablecoin_slope !== undefined" class="data-warning">
-                ⚠️ 当前显示为0.000%可能是因为外部数据源（CoinGecko）返回的历史数据不足，或API调用失败。系统会尝试从缓存数据计算，如仍为0则说明数据不足。
+                {{ $t('section.fundingPosture.dataWarning') }}
               </p>
             </div>
             <div class="funding-change-grid">
               <div v-if="stateData.metadata?.stablecoin_slope !== undefined" class="funding-change-item">
-                <div class="change-label">稳定币市值趋势</div>
+                <div class="change-label">{{ $t('fundingChange.stablecoinTrendLabel') }}</div>
                 <div class="change-value" :class="stateData.metadata.stablecoin_slope > 0 ? 'positive' : 'negative'">
                   <span class="change-icon">{{ stateData.metadata.stablecoin_slope > 0 ? '📈' : '📉' }}</span>
                   <span>{{ stateData.metadata.stablecoin_slope > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_slope.toFixed(3) }}%/天</span>
                 </div>
                 <div class="change-desc">
-                  <strong>{{ stateData.metadata.stablecoin_slope > 0 ? '上升（变多）' : '下降（变少）' }}：</strong>
-                  {{ stateData.metadata.stablecoin_slope > 0 ? '稳定币市值上升，资金避险' : '稳定币市值下降，资金流入风险资产' }}
+                  <strong>{{ stateData.metadata.stablecoin_slope > 0 ? $t('fundingChange.upMore') : $t('fundingChange.downLess') }}：</strong>
+                  {{ stateData.metadata.stablecoin_slope > 0 ? $t('fundingChange.stablecoinUpDesc') : $t('fundingChange.stablecoinDownDesc') }}
                 </div>
               </div>
               <div v-if="stateData.metadata?.total_slope !== undefined" class="funding-change-item">
-                <div class="change-label">加密总市值趋势</div>
+                <div class="change-label">{{ $t('fundingChange.totalTrendLabel') }}</div>
                 <div class="change-value" :class="stateData.metadata.total_slope > 0 ? 'positive' : 'negative'">
                   <span class="change-icon">{{ stateData.metadata.total_slope > 0 ? '📈' : '📉' }}</span>
                   <span>{{ stateData.metadata.total_slope > 0 ? '+' : '' }}{{ stateData.metadata.total_slope.toFixed(3) }}%/天</span>
                 </div>
                 <div class="change-desc">
-                  <strong>{{ stateData.metadata.total_slope > 0 ? '上升（变多）' : '下降（变少）' }}：</strong>
-                  {{ stateData.metadata.total_slope > 0 ? '总市值上升，风险资产扩张' : '总市值下降，风险资产收缩' }}
+                  <strong>{{ stateData.metadata.total_slope > 0 ? $t('fundingChange.upMore') : $t('fundingChange.downLess') }}：</strong>
+                  {{ stateData.metadata.total_slope > 0 ? $t('fundingChange.totalUpDesc') : $t('fundingChange.totalDownDesc') }}
                 </div>
               </div>
               <div v-if="stateData.metadata?.stablecoin_ratio !== undefined" class="funding-change-item">
-                <div class="change-label">稳定币占比</div>
+                <div class="change-label">{{ $t('fundingChange.stablecoinRatioLabel') }}</div>
                 <div class="change-value">
                   <span class="change-icon">💵</span>
                   <span>{{ stateData.metadata.stablecoin_ratio.toFixed(2) }}%</span>
@@ -1079,20 +1079,20 @@ onMounted(() => {
                 <div class="change-desc">
                   <div v-if="stateData.metadata?.stablecoin_ratio_gap !== undefined && stateData.metadata?.stablecoin_ratio_gap !== null" style="margin-bottom: 0.5rem;">
                     <span class="ratio-change-indicator">⚖️</span>
-                    <span>距离阈值: {{ stateData.metadata.stablecoin_ratio_gap > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_gap.toFixed(2) }}%</span>
+                    <span>{{ $t('fundingChange.thresholdGap') }} {{ stateData.metadata.stablecoin_ratio_gap > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_gap.toFixed(2) }}%</span>
                   </div>
                   <div v-if="stateData.metadata?.stablecoin_ratio_change !== undefined && stateData.metadata?.stablecoin_ratio_change !== null" style="margin-bottom: 0.5rem;">
                     <span class="ratio-change-indicator">{{ stateData.metadata.stablecoin_ratio_change < 0 ? '⬇️' : stateData.metadata.stablecoin_ratio_change > 0 ? '⬆️' : '➡️' }}</span>
                     <span :class="stateData.metadata.stablecoin_ratio_change < 0 ? 'positive' : stateData.metadata.stablecoin_ratio_change > 0 ? 'negative' : ''">
-                      变化: {{ stateData.metadata.stablecoin_ratio_change > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_change.toFixed(2) }}%
+                      {{ $t('fundingChange.changeLabel') }} {{ stateData.metadata.stablecoin_ratio_change > 0 ? '+' : '' }}{{ stateData.metadata.stablecoin_ratio_change.toFixed(2) }}%
                     </span>
                   </div>
-                  <strong>说明：</strong>稳定币市值 / 加密总市值。占比增加表示资金避险，占比减少表示资金流入风险资产。
+                  <strong>{{ $t('fundingChange.explanationStrong') }}</strong>{{ $t('fundingChange.explanationBody') }}
                 </div>
               </div>
             </div>
             <div v-if="fundingPatternInfo" class="funding-combination">
-              <div class="combination-label">当前组合模式：</div>
+              <div class="combination-label">{{ $t('section.fundingPosture.currentCombination') }}</div>
               <div class="combination-pattern">
                 {{ fundingPatternInfo?.pattern }} - {{ fundingPatternInfo?.name }}
               </div>
@@ -1102,28 +1102,28 @@ onMounted(() => {
           <div class="funding-info-card">
             <div class="funding-info-header">
               <span class="funding-icon">💵</span>
-              <h3>资金组合模式</h3>
+              <h3>{{ $t('section.fundingPosture.patternsTitle') }}</h3>
             </div>
             <div class="funding-patterns">
               <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↑ + Total ↑' }">
                 <div class="pattern-indicator">Stable ↑ + Total ↑</div>
-                <div class="pattern-name">增量进攻</div>
-                <div class="pattern-desc">场内现金变多，且资产也在涨，说明场外资金进场。偏进攻/偏牛</div>
+                <div class="pattern-name">{{ $t('fundingPattern.incrementalOffensive.name') }}</div>
+                <div class="pattern-desc">{{ $t('fundingPattern.incrementalOffensive.desc') }}</div>
               </div>
               <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↓ + Total ↑' }">
                 <div class="pattern-indicator">Stable ↓ + Total ↑</div>
-                <div class="pattern-name">强力进攻</div>
-                <div class="pattern-desc">稳定币池子缩小换成币，风险资产大幅扩张。<strong>最强进攻状态</strong></div>
+                <div class="pattern-name">{{ $t('fundingPattern.strongOffensive.name') }}</div>
+                <div class="pattern-desc">{{ $t('fundingPattern.strongOffensive.descPre') }}<strong>{{ $t('fundingPattern.strongOffensive.descStrong') }}</strong></div>
               </div>
               <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↑ + Total ↓' }">
                 <div class="pattern-indicator">Stable ↑ + Total ↓</div>
-                <div class="pattern-name">去风险防守</div>
-                <div class="pattern-desc">币缩水，现金变大，投资者卖币换钱躲避风险。典型去风险/防守</div>
+                <div class="pattern-name">{{ $t('fundingPattern.deriskDefensive.name') }}</div>
+                <div class="pattern-desc">{{ $t('fundingPattern.deriskDefensive.desc') }}</div>
               </div>
               <div class="funding-pattern-item" :class="{ active: fundingPatternInfo?.pattern === 'Stable ↓ + Total ↓' }">
                 <div class="pattern-indicator">Stable ↓ + Total ↓</div>
-                <div class="pattern-name">深度防守/撤退</div>
-                <div class="pattern-desc">资产和现金同步缩水，说明资金彻底离开加密体系。更强的防守/彻底熊</div>
+                <div class="pattern-name">{{ $t('fundingPattern.deepDefensive.name') }}</div>
+                <div class="pattern-desc">{{ $t('fundingPattern.deepDefensive.desc') }}</div>
               </div>
             </div>
           </div>
