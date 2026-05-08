@@ -682,14 +682,14 @@ onMounted(() => {
 <template>
   <div class="container">
     <header>
-      <h1>📊 BullBear Dashboard</h1>
-      <p class="subtitle">加密市场状态机 - 四象限状态可视化</p>
+      <h1>📊 {{ $t('app.title') }}</h1>
+      <p class="subtitle">{{ $t('app.subtitle') }}</p>
       <button @click="loadAllData" :disabled="loading" class="refresh-btn">
-        {{ loading ? '加载中...' : '🔄 刷新数据' }}
+        {{ loading ? $t('actions.loading') : `${$t('actions.refreshIcon')} ${$t('actions.refresh')}` }}
       </button>
       <div v-if="currentQuadrant" class="status-summary">
         <p class="status-primary">{{ $t('status.currentLabel') }}{{ currentQuadrant.name }}</p>
-        <p class="status-secondary">{{ currentQuadrant.trend }}｜{{ currentQuadrant.flow }}</p>
+        <p class="status-secondary">{{ currentQuadrant.trend }}{{ $t('status.separator') }}{{ currentQuadrant.flow }}</p>
       </div>
       <div class="lang-toggle" role="group" :aria-label="$t('langToggle.aria')">
         <button
@@ -721,8 +721,8 @@ onMounted(() => {
           <div class="spinner-ring"></div>
         </div>
         <div class="loading-text">
-          <p class="loading-title">正在加载市场数据...</p>
-          <p class="loading-subtitle">请稍候，正在获取最新状态</p>
+          <p class="loading-title">{{ $t('loading.title') }}</p>
+          <p class="loading-subtitle">{{ $t('loading.subtitle') }}</p>
         </div>
       </div>
 
@@ -731,35 +731,36 @@ onMounted(() => {
         <!-- 当前状态概览 -->
         <div v-if="stateData && stateData.ok" class="state-header fade-in">
           <div class="state-box" :style="{ background: STATE_STYLES[stateData.state]?.bgColor || '#1e293b' }">
-            <div class="state-name">{{ stateData.state }}</div>
+            <div class="state-name">{{ STATE_KEYS[stateData.state] ? $t(`quadrant.${STATE_KEYS[stateData.state]}.name`) : stateData.state }}</div>
             <div class="state-details">
-              {{ stateData.trend }} | {{ stateData.funding }}
+              {{ TREND_KEYS[stateData.trend] ? $t(`trend.${TREND_KEYS[stateData.trend]}`) : stateData.trend }}
+              | {{ FUNDING_KEYS[stateData.funding] ? $t(`funding.${FUNDING_KEYS[stateData.funding]}`) : stateData.funding }}
             </div>
           </div>
           <div class="state-metrics">
-            <div class="metric-item">
-              <span class="metric-label">风险等级</span>
-              <span class="metric-value">{{ RISK_COLORS[stateData.risk_level] || '⚪' }} {{ stateData.risk_level }}</span>
-              <div class="metric-tooltip">
-                <span class="tooltip-icon">ℹ️</span>
-                <div class="tooltip-content">
-                  <strong>风险等级说明：</strong><br>
-                  • HIGH：牛市进攻状态，市场可能过热，需注意回调风险<br>
-                  • MEDIUM：牛市修复或熊市反弹，中等风险<br>
-                  • LOW：熊市消化状态，已充分回调，风险相对较低
+            <div class=”metric-item”>
+              <span class=”metric-label”>{{ $t('metric.risk.label') }}</span>
+              <span class=”metric-value”>{{ RISK_COLORS[stateData.risk_level] || '⚪' }} {{ stateData.risk_level }}</span>
+              <div class=”metric-tooltip”>
+                <span class=”tooltip-icon”>ℹ️</span>
+                <div class=”tooltip-content”>
+                  <strong>{{ $t('metric.risk.tooltipTitle') }}</strong><br>
+                  • {{ $t('metric.risk.high') }}<br>
+                  • {{ $t('metric.risk.medium') }}<br>
+                  • {{ $t('metric.risk.low') }}
                 </div>
               </div>
             </div>
-            <div class="metric-item">
-              <span class="metric-label">置信度</span>
-              <span class="metric-value">{{ (stateData.confidence * 100).toFixed(1) }}%</span>
-              <div class="metric-tooltip">
-                <span class="tooltip-icon">ℹ️</span>
-                <div class="tooltip-content">
-                  <strong>置信度说明：</strong><br>
-                  • 由“趋势结构 + 资金姿态”一致性计算<br>
-                  • 越接近 100% 表示信号更一致、结构更清晰<br>
-                  • 低置信度通常来自斜率走平或信号分歧
+            <div class=”metric-item”>
+              <span class=”metric-label”>{{ $t('metric.confidence.label') }}</span>
+              <span class=”metric-value”>{{ (stateData.confidence * 100).toFixed(1) }}%</span>
+              <div class=”metric-tooltip”>
+                <span class=”tooltip-icon”>ℹ️</span>
+                <div class=”tooltip-content”>
+                  <strong>{{ $t('metric.confidence.tooltipTitle') }}</strong><br>
+                  • {{ $t('metric.confidence.item1') }}<br>
+                  • {{ $t('metric.confidence.item2') }}<br>
+                  • {{ $t('metric.confidence.item3') }}
                 </div>
               </div>
             </div>
