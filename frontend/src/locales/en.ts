@@ -26,7 +26,7 @@ export default {
   },
   status: {
     currentLabel: 'Current state: ',
-    separator: ' | ',
+    separator: ' · ',
   },
   data: {
     btc_price: 'BTC Price',
