@@ -8,6 +8,19 @@ export type MessageSchema = typeof zh;
 const STORAGE_KEY = 'locale';
 
 function detectInitialLocale(): AppLocale {
+  // URL ?lang=zh|en wins so cross-site links (e.g. openclue-data) can pin a language
+  // across origins where localStorage isn't shared. We persist it so the choice sticks.
+  try {
+    if (typeof window !== 'undefined') {
+      const fromUrl = new URLSearchParams(window.location.search).get('lang');
+      if (fromUrl === 'zh' || fromUrl === 'en') {
+        try { localStorage.setItem(STORAGE_KEY, fromUrl); } catch { /* ignore */ }
+        return fromUrl;
+      }
+    }
+  } catch {
+    // URL parsing failure, fall through
+  }
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'zh' || saved === 'en') return saved;
