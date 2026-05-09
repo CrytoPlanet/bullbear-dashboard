@@ -738,12 +738,12 @@ onMounted(() => {
             </div>
           </div>
           <div class="state-metrics">
-            <div class=”metric-item”>
-              <span class=”metric-label”>{{ $t('metric.risk.label') }}</span>
-              <span class=”metric-value”>{{ RISK_COLORS[stateData.risk_level] || '⚪' }} {{ stateData.risk_level }}</span>
-              <div class=”metric-tooltip”>
-                <span class=”tooltip-icon”>ℹ️</span>
-                <div class=”tooltip-content”>
+            <div class="metric-item">
+              <span class="metric-label">{{ $t('metric.risk.label') }}</span>
+              <span class="metric-value">{{ RISK_COLORS[stateData.risk_level] || '⚪' }} {{ stateData.risk_level }}</span>
+              <div class="metric-tooltip">
+                <span class="tooltip-icon">ℹ️</span>
+                <div class="tooltip-content">
                   <strong>{{ $t('metric.risk.tooltipTitle') }}</strong><br>
                   • {{ $t('metric.risk.high') }}<br>
                   • {{ $t('metric.risk.medium') }}<br>
@@ -751,12 +751,12 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class=”metric-item”>
-              <span class=”metric-label”>{{ $t('metric.confidence.label') }}</span>
-              <span class=”metric-value”>{{ (stateData.confidence * 100).toFixed(1) }}%</span>
-              <div class=”metric-tooltip”>
-                <span class=”tooltip-icon”>ℹ️</span>
-                <div class=”tooltip-content”>
+            <div class="metric-item">
+              <span class="metric-label">{{ $t('metric.confidence.label') }}</span>
+              <span class="metric-value">{{ (stateData.confidence * 100).toFixed(1) }}%</span>
+              <div class="metric-tooltip">
+                <span class="tooltip-icon">ℹ️</span>
+                <div class="tooltip-content">
                   <strong>{{ $t('metric.confidence.tooltipTitle') }}</strong><br>
                   • {{ $t('metric.confidence.item1') }}<br>
                   • {{ $t('metric.confidence.item2') }}<br>
