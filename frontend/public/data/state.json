@@ -4,10 +4,10 @@
   "trend": "趋势空",
   "funding": "资金进攻",
   "risk_level": "MEDIUM",
-  "confidence": 0.4936677117739491,
+  "confidence": 0.4932183831273492,
   "validation": {
     "risk_thermometer": "高烧威胁",
-    "ath_drawdown": 35.24408190973787,
+    "ath_drawdown": 35.22084433178582,
     "ath_price": 124797.86,
     "etf_accelerator": "钝化",
     "etf_net_flow": -145700000.0,
@@ -20,19 +20,19 @@
     "etf_aum_trend": "up"
   },
   "metadata": {
-    "btc_price": 80814.0,
-    "ma50": 73660.772,
-    "ma200": 82903.50715,
-    "ma50_slope": 0.21489643657093271,
-    "ma200_slope": -0.17510960688611465,
-    "total_market_cap": 2775946615123.8457,
-    "stablecoin_market_cap": 274239778698.22192,
-    "stablecoin_ratio": 9.879144548534015,
-    "stablecoin_change": 18879809430.569458,
-    "stablecoin_ratio_change": 1.8791445485340148,
+    "btc_price": 80843.0,
+    "ma50": 73662.286,
+    "ma200": 82903.88565000001,
+    "ma50_slope": 0.21500878738835993,
+    "ma200_slope": -0.17508474755434378,
+    "total_market_cap": 2777973115869.152,
+    "stablecoin_market_cap": 274246327105.05118,
+    "stablecoin_ratio": 9.87217354762798,
+    "stablecoin_change": 18886357837.398712,
+    "stablecoin_ratio_change": 1.8721735476279804,
     "stablecoin_ratio_gap": null,
-    "stablecoin_slope": 0.5503590209989806,
-    "total_slope": 0.5503590209989806,
-    "ath_drawdown": 35.24408190973787
+    "stablecoin_slope": 0.5528327805696565,
+    "total_slope": 0.5528327805696565,
+    "ath_drawdown": 35.22084433178582
   }
 }
