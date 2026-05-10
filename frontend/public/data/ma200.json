@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data_type": "ma200",
-  "value": 82768.66434999999,
+  "value": 82769.66685,
   "provider": "binance",
   "metadata": {
     "period": 200,
