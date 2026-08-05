@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data_type": "etf_net_flow",
-  "value": 41200000.0,
+  "value": 211500000.0,
   "provider": "farside",
   "metadata": {
     "currency": "USD",
