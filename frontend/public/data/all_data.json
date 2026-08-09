@@ -3,7 +3,7 @@
   "data": {
     "btc_price": {
       "data_type": "btc_price",
-      "value": 64815.0,
+      "value": 64889.0,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
@@ -11,7 +11,7 @@
     },
     "total_market_cap": {
       "data_type": "total_market_cap",
-      "value": 2297715710072.7686,
+      "value": 2298818123507.115,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
@@ -19,7 +19,7 @@
     },
     "stablecoin_market_cap": {
       "data_type": "stablecoin_market_cap",
-      "value": 262158775379.61813,
+      "value": 262165165282.07867,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
@@ -27,7 +27,7 @@
     },
     "ma50": {
       "data_type": "ma50",
-      "value": 63370.496399999996,
+      "value": 63372.3276,
       "provider": "binance",
       "metadata": {
         "period": 50,
@@ -37,7 +37,7 @@
     },
     "ma200": {
       "data_type": "ma200",
-      "value": 70170.5346,
+      "value": 70170.9924,
       "provider": "binance",
       "metadata": {
         "period": 200,
