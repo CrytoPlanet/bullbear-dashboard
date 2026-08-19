@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data_type": "stablecoin_market_cap",
-  "value": 261564363682.46008,
+  "value": 261569985475.26486,
   "provider": "coingecko",
   "metadata": {
     "currency": "USD"
