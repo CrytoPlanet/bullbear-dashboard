@@ -3,7 +3,7 @@
   "data": {
     "btc_price": {
       "data_type": "btc_price",
-      "value": 80395.0,
+      "value": 80374.0,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
@@ -11,7 +11,7 @@
     },
     "total_market_cap": {
       "data_type": "total_market_cap",
-      "value": 2711080342441.7964,
+      "value": 2712491680431.367,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
@@ -19,7 +19,7 @@
     },
     "stablecoin_market_cap": {
       "data_type": "stablecoin_market_cap",
-      "value": 255891235953.8759,
+      "value": 255914282285.9984,
       "provider": "coingecko",
       "metadata": {
         "currency": "USD"
@@ -27,7 +27,7 @@
     },
     "ma50": {
       "data_type": "ma50",
-      "value": 82064.1908,
+      "value": 82146.144,
       "provider": "binance",
       "metadata": {
         "period": 50,
@@ -37,7 +37,7 @@
     },
     "ma200": {
       "data_type": "ma200",
-      "value": 73230.08635,
+      "value": 73262.7565,
       "provider": "binance",
       "metadata": {
         "period": 200,
@@ -47,7 +47,7 @@
     },
     "etf_net_flow": {
       "data_type": "etf_net_flow",
-      "value": 0.0,
+      "value": 74600000.0,
       "provider": "farside",
       "metadata": {
         "currency": "USD",
@@ -56,7 +56,7 @@
     },
     "etf_aum": {
       "data_type": "etf_aum",
-      "value": 101985783360.0,
+      "value": 93145438608.0,
       "provider": "yfinance",
       "metadata": {
         "currency": "USD",

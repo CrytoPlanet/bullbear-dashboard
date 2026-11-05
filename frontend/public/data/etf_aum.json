@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data_type": "etf_aum",
-  "value": 101985783360.0,
+  "value": 93145438608.0,
   "provider": "yfinance",
   "metadata": {
     "currency": "USD",
